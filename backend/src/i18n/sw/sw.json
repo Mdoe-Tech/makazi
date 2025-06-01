@@ -1,0 +1,230 @@
+{
+  "validation": {
+    "required": "{{field}} inahitajika",
+    "string": "{{field}} lazima iwe na maneno",
+    "date": "{{field}} lazima iwe tarehe halali",
+    "phone": "{{field}} lazima iwe namba ya simu halali",
+    "enum": "{{field}} lazima iwe moja ya: {{values}}",
+    "biometric": "Data ya biometric inahitajika",
+    "documents": "Nyaraka zote muhimu zinahitajika",
+    "nida": "Namba ya NIDA inahitajika",
+    "min_length": "{{field}} lazima iwe na herufi {{min}} au zaidi",
+    "password_format": "Nywila lazima iwe na herufi kubwa moja, herufi ndogo moja, namba moja na alama maalum moja"
+  },
+  "fields": {
+    "first_name": "Jina la Kwanza",
+    "middle_name": "Jina la kati",
+    "last_name": "Jina la Familia",
+    "other_names": "Majina mengine",
+    "date_of_birth": "Tarehe ya Kuzaliwa",
+    "birth_certificate_number": "Namba ya cheti cha kuzaliwa",
+    "phone_number": "Namba ya Simu",
+    "gender": "Jinsia",
+    "marital_status": "Hali ya ndoa",
+    "occupation": "Kazi",
+    "employer_name": "Jina la mwajiri",
+    "dossier_number": "Namba ya dosia",
+    "employment_status": "Hali ya ajira",
+    "address": "Anwani",
+    "contact_details": "Maelezo ya mawasiliano",
+    "biometric_data": "Data ya biometric",
+    "documents": "Nyaraka",
+    "nida_number": "Namba ya NIDA",
+    "fingerprint_data": "Data ya alama za vidole",
+    "facial_data": "Data ya uso",
+    "iris_data": "Data ya jicho",
+    "quality_score": "Alama ya ubora",
+    "capture_device": "Kifaa cha kuchukua picha",
+    "email": "Barua pepe",
+    "password": "Nywila",
+    "nationality": "Uraia"
+  },
+  "enums": {
+    "gender": {
+      "MALE": "Mwanaume",
+      "FEMALE": "Mwanamke",
+      "OTHER": "Nyingine"
+    },
+    "marital_status": {
+      "single": "Hajaoa",
+      "married": "Ameoa",
+      "divorced": "Ameachana",
+      "widowed": "Mfiwa"
+    },
+    "employment_status": {
+      "employed": "Ana kazi",
+      "unemployed": "Hana kazi",
+      "self_employed": "Mfanya biashara",
+      "student": "Mwanafunzi",
+      "retired": "Mstaafu"
+    },
+    "registration_status": {
+      "pending": "Inasubiri",
+      "biometric_validation": "Inathibitisha biometric",
+      "document_verification": "Inathibitisha nyaraka",
+      "nida_verification": "Inathibitisha NIDA",
+      "approved": "Imekubaliwa",
+      "rejected": "Imekataliwa"
+    }
+  },
+  "workflow": {
+    "invalid_status": "Hali ya usajili haifai kwa hatua hii",
+    "not_found": "Mwananchi hajapatikana",
+    "already_approved": "Usajili tayari umekubaliwa",
+    "rejection_reason_required": "Sababu ya kukataa inahitajika"
+  },
+  "roles": {
+    "admin": "Msimamizi",
+    "registrar": "Msaajili",
+    "verifier": "Mthibitishaji",
+    "approver": "Mkubali"
+  },
+  "biometric": {
+    "not_found": "Data ya biometric haijapatikana",
+    "already_verified": "Data ya biometric tayari imethibitishwa",
+    "validation_success": "Data ya biometric imethibitishwa",
+    "validation_failed": "Data ya biometric haijafika kiwango cha ubora",
+    "quality_threshold": "Kiwango cha ubora cha data ya biometric",
+    "invalid_data": "Data ya biometric si sahihi",
+    "verification_failed": "Uthibitishaji wa biometric umeshindwa"
+  },
+  "document": {
+    "not_found": "Nyaraka haijapatikana",
+    "already_verified": "Nyaraka tayari imethibitishwa",
+    "already_rejected": "Nyaraka tayari imekataliwa",
+    "invalid_type": "Aina ya nyaraka si sahihi",
+    "invalid_file": "Faili si sahihi",
+    "upload_failed": "Upakiaji wa faili umeshindwa"
+  },
+  "admin": {
+    "not_found": "Msimamizi huyu hapatikani",
+    "username_or_email_exists": "Jina la mtumiaji au barua pepe tayari lipo",
+    "invalid_credentials": "Jina la mtumiaji au nenosiri si sahihi",
+    "account_inactive": "Akaunti yako imezimwa",
+    "password_updated": "Nenosiri limebadilishwa kwa mafanikio",
+    "profile_updated": "Wasifu wako umeboreshwa kwa mafanikio",
+    "account_created": "Akaunti mpya imeundwa kwa mafanikio",
+    "account_deleted": "Akaunti imefutwa kwa mafanikio",
+    "account_toggled": "Hali ya akaunti imebadilishwa kwa mafanikio",
+    "validation": {
+      "username_required": "Jina la mtumiaji linahitajika",
+      "username_min_length": "Jina la mtumiaji lazima liwe na herufi 3 au zaidi",
+      "password_required": "Nenosiri linahitajika",
+      "password_min_length": "Nenosiri lazima liwe na herufi 8 au zaidi",
+      "password_pattern": "Nenosiri lazima liwe na herufi kubwa, ndogo, namba na alama maalum",
+      "email_required": "Barua pepe inahitajika",
+      "email_invalid": "Barua pepe si sahihi",
+      "phone_required": "Namba ya simu inahitajika",
+      "phone_pattern": "Namba ya simu inapaswa kuanza na +255 na kuwa na tarakimu 9",
+      "role_required": "Jukumu linahitajika",
+      "role_invalid": "Jukumu si sahihi"
+    }
+  },
+  "notification": {
+    "not_found": "Arifa haijapatikana",
+    "created": "Arifa mpya imeundwa",
+    "updated": "Arifa imeboreshwa",
+    "deleted": "Arifa imefutwa",
+    "marked_read": "Arifa imesomwa",
+    "marked_archived": "Arifa imehifadhiwa",
+    "validation": {
+      "recipient_required": "Mpokeaji wa arifa anahitajika",
+      "type_required": "Aina ya arifa inahitajika",
+      "title_required": "Kichwa cha arifa kinahitajika",
+      "message_required": "Ujumbe wa arifa unahitajika"
+    },
+    "types": {
+      "registration_status": "Hali ya usajili",
+      "document_verification": "Uthibitishaji wa nyaraka",
+      "biometric_verification": "Uthibitishaji wa biometric",
+      "system_alert": "Onyo la mfumo",
+      "account_update": "Sasisho la akaunti",
+      "security_alert": "Onyo la usalama"
+    },
+    "status": {
+      "unread": "Hajasomwa",
+      "read": "Imesomwa",
+      "archived": "Imehifadhiwa",
+      "deleted": "Imeufutwa"
+    }
+  },
+  "auth": {
+    "invalid_credentials": "Mawasiliano yasiyo sahihi",
+    "account_inactive": "Akaunti yako imezimwa",
+    "invalid_token": "Tokeni si sahihi au imekwisha",
+    "login_success": "Umeingia kwa mafanikio",
+    "logout_success": "Umetoka kwa mafanikio",
+    "token_expired": "Tokeni imekwisha",
+    "unauthorized": "Huna ruhusa ya kufanya kitendo hiki",
+    "validation": {
+      "username_required": "Jina la mtumiaji linahitajika",
+      "password_required": "Nenosiri linahitajika"
+    },
+    "login": "Ingia",
+    "logout": "Toka",
+    "register": "Jisajili"
+  },
+  "integration": {
+    "config_created": "Usanidi wa muunganisho umeundwa kwa mafanikio",
+    "config_updated": "Usanidi wa muunganisho umesasishwa kwa mafanikio",
+    "connection_success": "Muunganisho umefanikiwa",
+    "connection_failed": "Muunganisho umeshindwa",
+    "nida_verified": "Namba ya NIDA imethibitishwa",
+    "nida_invalid": "Namba ya NIDA si sahihi",
+    "sms_sent": "SMS imetumwa kwa mafanikio",
+    "email_sent": "Barua pepe imetumwa kwa mafanikio",
+    "types": {
+      "NIDA": "NIDA",
+      "SMS": "SMS",
+      "EMAIL": "Barua pepe",
+      "PAYMENT": "Malipo"
+    },
+    "status": {
+      "ACTIVE": "Inatumika",
+      "INACTIVE": "Haifanyi kazi",
+      "ERROR": "Hitilafu"
+    },
+    "validation": {
+      "type_required": "Aina ya muunganisho inahitajika",
+      "name_required": "Jina la muunganisho linahitajika",
+      "config_required": "Usanidi wa muunganisho unahitajika",
+      "invalid_type": "Aina ya muunganisho si sahihi",
+      "invalid_config": "Usanidi wa muunganisho si sahihi"
+    },
+    "not_found": "Muunganisho haujapatikana",
+    "unsupported_type": "Aina ya muunganisho haitumiki"
+  },
+  "config": {
+    "not_found": "Usanidi haujapatikana",
+    "updated": "Usanidi umesasishwa kwa mafanikio",
+    "toggled": "Hali ya usanidi imebadilishwa kwa mafanikio"
+  },
+  "reporting": {
+    "not_found": "Ripoti haijapatikana",
+    "invalid_report_type": "Aina ya ripoti si sahihi"
+  },
+  "citizen": {
+    "invalid_status_transition": "Mabadiliko ya hali hayaruhusiwi",
+    "invalid_approval_status": "Hali ya sasa hairuhusu idhini",
+    "invalid_rejection_status": "Hali ya sasa hairuhusu kukataliwa",
+    "rejection_reason_required": "Sababu ya kukataliwa inahitajika",
+    "invalid_status": "Hali isiyo halali",
+    "already_approved": "Usajili tayari umeidhinishwa",
+    "not_found": "Mwananchi hajapatikana",
+    "invalid_biometric_data": "Data ya biometric si sahihi",
+    "invalid_document": "Nyaraka si sahihi",
+    "invalid_nida": "Namba ya NIDA si sahihi",
+    "registration_complete": "Usajili umekamilika",
+    "registration_rejected": "Usajili umekataliwa"
+  },
+  "nida": {
+    "invalid_number": "Namba ya NIDA si sahihi",
+    "verification_failed": "Uthibitishaji wa NIDA umeshindwa",
+    "not_found": "Mwananchi hajapatikana kwenye NIDA"
+  },
+  "common": {
+    "welcome": "Karibu",
+    "error": "Hitilafu",
+    "success": "Mafanikio"
+  }
+} 

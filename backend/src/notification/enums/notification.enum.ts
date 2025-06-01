@@ -1,0 +1,16 @@
+export enum NotificationType {
+  REGISTRATION = 'REGISTRATION',
+  DOCUMENT_VERIFICATION = 'DOCUMENT_VERIFICATION',
+  BIOMETRIC_VERIFICATION = 'BIOMETRIC_VERIFICATION',
+  NIDA_VERIFICATION = 'NIDA_VERIFICATION',
+  APPROVAL = 'APPROVAL',
+  REJECTION = 'REJECTION',
+  SYSTEM = 'SYSTEM'
+}
+
+export enum NotificationStatus {
+  UNREAD = 'unread',
+  READ = 'read',
+  ARCHIVED = 'archived',
+  DELETED = 'deleted'
+} 

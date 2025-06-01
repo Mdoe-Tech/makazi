@@ -1,0 +1,8 @@
+export enum AuditEntity {
+  CITIZEN = 'CITIZEN',
+  ADMIN = 'ADMIN',
+  DOCUMENT = 'DOCUMENT',
+  BIOMETRIC = 'BIOMETRIC',
+  NOTIFICATION = 'NOTIFICATION',
+  SYSTEM = 'SYSTEM'
+} 
