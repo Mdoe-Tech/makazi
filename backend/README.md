@@ -1,99 +1,232 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Makazi Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+The backend service for the Makazi Citizen Registration and Management System, built with NestJS.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🏗️ Architecture
 
-## Description
+The backend follows a modular architecture with the following key components:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ pnpm install
+```
+backend/
+├── src/
+│   ├── admin/           # Admin management module
+│   ├── auth/            # Authentication & authorization
+│   ├── biometric/       # Biometric verification
+│   ├── citizen/         # Citizen registration & management
+│   ├── common/          # Shared utilities & decorators
+│   ├── config/          # System configuration
+│   ├── database/        # Database configuration & migrations
+│   ├── document/        # Document management
+│   ├── integration/     # External service integrations
+│   ├── logging/         # System logging
+│   ├── notification/    # Notification system
+│   └── reporting/       # Reporting & analytics
 ```
 
-## Compile and run the project
+## 🚀 Getting Started
 
-```bash
-# development
-$ pnpm run start
+### Prerequisites
 
-# watch mode
-$ pnpm run start:dev
+- Node.js (v18 or higher)
+- PostgreSQL (v14 or higher)
+- pnpm (recommended) or npm
 
-# production mode
-$ pnpm run start:prod
+### Installation
+
+1. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+
+2. Set up environment variables:
+   ```bash
+   # Create .env file
+   DATABASE_HOST=localhost
+   DATABASE_PORT=5432
+   DATABASE_USERNAME=postgres
+   DATABASE_PASSWORD=your_password
+   DATABASE_NAME=makazi
+   JWT_SECRET=your_jwt_secret
+   JWT_EXPIRATION=1d
+   ```
+
+3. Run database migrations:
+   ```bash
+   pnpm run migration:run
+   ```
+
+4. Start the development server:
+   ```bash
+   pnpm run start:dev
+   ```
+
+## 📚 API Documentation
+
+The API documentation is available at `http://localhost:30002/api/docs` when running the server.
+
+### Core Modules
+
+#### Authentication (`/auth`)
+- `POST /auth/login` - User login
+- `POST /auth/refresh` - Refresh token
+- `POST /auth/logout` - User logout
+
+#### Admin Management (`/admin`)
+- `POST /admin/first-admin` - Create first admin
+- `GET /admin` - List all admins
+- `POST /admin` - Create new admin
+- `GET /admin/:id` - Get admin details
+- `PUT /admin/:id` - Update admin
+- `DELETE /admin/:id` - Delete admin
+
+#### Citizen Management (`/citizen`)
+- `POST /citizen` - Register new citizen
+- `GET /citizen` - List all citizens
+- `GET /citizen/:id` - Get citizen details
+- `PUT /citizen/:id` - Update citizen
+- `DELETE /citizen/:id` - Delete citizen
+
+#### Document Management (`/document`)
+- `POST /document/citizen/:id` - Upload document
+- `GET /document/citizen/:id` - Get citizen documents
+- `GET /document/:id` - Get document details
+- `PUT /document/:id/verify` - Verify document
+- `PUT /document/:id/reject` - Reject document
+- `DELETE /document/:id` - Delete document
+
+#### Biometric Management (`/biometric`)
+- `POST /biometric/citizen/:id` - Add biometric data
+- `GET /biometric/citizen/:id` - Get citizen biometrics
+- `POST /biometric/match` - Match biometric data
+- `DELETE /biometric/:id` - Delete biometric record
+
+## 🗄️ Database Schema
+
+### Core Tables
+
+#### `admin`
+```sql
+CREATE TABLE admin (
+    id UUID PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    last_login JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
-## Run tests
+#### `citizen`
+```sql
+CREATE TABLE citizen (
+    id UUID PRIMARY KEY,
+    nida_number VARCHAR(255) UNIQUE,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    gender VARCHAR(50) NOT NULL,
+    phone_number VARCHAR(50) NOT NULL,
+    email VARCHAR(255),
+    address JSONB NOT NULL,
+    registration_status VARCHAR(50) NOT NULL,
+    biometric_data JSONB,
+    documents JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### `document`
+```sql
+CREATE TABLE document (
+    id UUID PRIMARY KEY,
+    citizen_id UUID REFERENCES citizen(id),
+    document_type VARCHAR(50) NOT NULL,
+    document_number VARCHAR(255) NOT NULL,
+    document_data JSONB NOT NULL,
+    verification_status VARCHAR(50) NOT NULL,
+    verified_by UUID REFERENCES admin(id),
+    verification_date TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## 🔒 Security
+
+### Authentication
+- JWT-based authentication
+- Token refresh mechanism
+- Secure password hashing with bcrypt
+
+### Authorization
+- Role-based access control (RBAC)
+- Role hierarchy:
+  - SUPER_ADMIN
+  - ADMIN
+  - REGISTRAR
+  - VERIFIER
+
+### Data Protection
+- Input validation using class-validator
+- SQL injection prevention
+- XSS protection
+- CORS configuration
+- Rate limiting
+
+## 🧪 Testing
 
 ```bash
-# unit tests
-$ pnpm run test
+# Unit tests
+pnpm run test
 
 # e2e tests
-$ pnpm run test:e2e
+pnpm run test:e2e
 
-# test coverage
-$ pnpm run test:cov
+# Test coverage
+pnpm run test:cov
 ```
 
-## Deployment
+## 📦 Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### Production Build
 ```bash
-$ pnpm install -g mau
-$ mau deploy
+# Build the application
+pnpm run build
+
+# Start production server
+pnpm run start:prod
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Docker Deployment
+```bash
+# Build Docker image
+docker build -t makazi-backend .
 
-## Resources
+# Run container
+docker run -p 30002:30002 makazi-backend
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+## 🔍 Monitoring & Logging
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- Structured logging with Winston
+- Audit logging for sensitive operations
+- Performance monitoring
+- Error tracking
 
-## Support
+## 🤝 Contributing
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## Stay in touch
+## 📝 License
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
