@@ -3,11 +3,7 @@ import { IsString, IsNotEmpty, IsNumber, IsOptional, Min, Max } from 'class-vali
 export class CreateBiometricDto {
   @IsString()
   @IsNotEmpty()
-  biometric_type: string;
-
-  @IsString()
-  @IsNotEmpty()
-  biometric_data: string;
+  fingerprint_data: string;
 
   @IsNumber()
   @IsOptional()

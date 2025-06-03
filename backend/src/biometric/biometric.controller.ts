@@ -25,7 +25,7 @@ export class BiometricController {
     @Param('id') citizenId: number,
     @Body() createBiometricDto: CreateBiometricDto
   ) {
-    this.loggingService.log(`Creating biometric data for citizen ${citizenId}`);
+    this.loggingService.log(`Creating fingerprint data for citizen ${citizenId}`);
     return this.biometricService.create(createBiometricDto);
   }
 
@@ -46,7 +46,7 @@ export class BiometricController {
   @Get('citizen/:id')
   @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER)
   async findByCitizenId(@Param('id') citizenId: number) {
-    this.loggingService.log(`Fetching biometric data for citizen ${citizenId}`);
+    this.loggingService.log(`Fetching fingerprint data for citizen ${citizenId}`);
     return this.biometricService.findByCitizenId(citizenId.toString());
   }
 
@@ -56,7 +56,7 @@ export class BiometricController {
     @Param('id') id: number,
     @Body('qualityThreshold') qualityThreshold?: number
   ) {
-    this.loggingService.log(`Validating biometric data ${id}`);
+    this.loggingService.log(`Validating fingerprint data ${id}`);
     return this.biometricService.validateBiometric(id.toString(), qualityThreshold);
   }
 

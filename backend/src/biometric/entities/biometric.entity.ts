@@ -5,10 +5,7 @@ import { Citizen } from '../../citizen/entities/citizen.entity';
 @Entity()
 export class Biometric extends BaseEntity {
   @Column()
-  biometric_type: string;
-
-  @Column()
-  biometric_data: string;
+  fingerprint_data: string;
 
   @Column({ type: 'jsonb' })
   metadata: {

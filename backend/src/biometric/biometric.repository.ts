@@ -40,20 +40,12 @@ export class BiometricRepository {
     await this.repository.delete(id);
   }
 
-  async updateBiometricData(id: string, biometricData: any): Promise<Biometric> {
+  async updateBiometricData(id: string, fingerprintData: string): Promise<Biometric> {
     await this.repository.update(id, {
-      biometric_data: biometricData,
+      fingerprint_data: fingerprintData,
       updated_at: new Date()
     });
     return this.findOne(id);
-  }
-
-  async findByType(type: string): Promise<Biometric[]> {
-    return this.repository.find({
-      where: {
-        biometric_type: type
-      }
-    });
   }
 
   async findByQuality(qualityThreshold: number): Promise<Biometric[]> {
