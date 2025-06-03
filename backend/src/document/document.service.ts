@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Document, DocumentStatus } from './entities/document.entity';
+import { Document, DocumentType, DocumentStatus } from './entities/document.entity';
 import { VerificationStatus } from './enums/verification-status.enum';
 import { CreateDocumentDto, VerifyDocumentDto, RejectDocumentDto } from './dto/create-document.dto';
 import { LoggingService } from '../logging/logging.service';
@@ -73,7 +73,8 @@ export class DocumentService {
   }
 
   async findByType(citizenId: string, type: string): Promise<Document | null> {
-    return this.documentRepository.findByType(citizenId, type);
+    const documents = await this.documentRepository.findByType(type as DocumentType);
+    return documents.find(doc => doc.citizen_id === citizenId) || null;
   }
 
   async update(id: string, updateData: Record<string, any>) {
@@ -124,7 +125,7 @@ export class DocumentService {
       this.loggingService.log(`Error deleting file for document ${id}: ${error.message}`);
     }
 
-    await this.documentRepository.delete(id);
+    await this.documentRepository.remove(id);
     this.loggingService.log(`Document ${id} deleted`);
   }
 } 

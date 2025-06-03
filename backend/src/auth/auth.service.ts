@@ -15,19 +15,24 @@ export class AuthService {
 
   async validateUser(username: string, password: string): Promise<any> {
     try {
+      this.loggingService.log(`Attempting to validate user: ${username}`);
+      
       const admin = await this.adminService.findByUsername(username);
       
       if (!admin) {
+        this.loggingService.log(`User not found: ${username}`);
         throw new UnauthorizedException(swMessages.auth.invalid_credentials);
       }
 
       if (!admin.is_active) {
+        this.loggingService.log(`Inactive account attempt: ${username}`);
         throw new UnauthorizedException(swMessages.auth.account_inactive);
       }
 
       const isPasswordValid = await bcrypt.compare(password, admin.password);
       
       if (!isPasswordValid) {
+        this.loggingService.log(`Invalid password for user: ${username}`);
         throw new UnauthorizedException(swMessages.auth.invalid_credentials);
       }
 
@@ -39,9 +44,19 @@ export class AuthService {
       );
 
       const { password: _, ...result } = admin;
+      this.loggingService.log(`User validated successfully: ${username}`);
       return result;
     } catch (error) {
-      this.loggingService.log(`Authentication failed for user ${username}: ${error.message}`);
+      const errorDetails = {
+        message: error.message,
+        stack: error.stack,
+        details: error.details || {},
+        query: error.query || null
+      };
+      this.loggingService.error(
+        `Authentication failed for user ${username}: ${JSON.stringify(errorDetails)}`,
+        error.stack
+      );
       throw error;
     }
   }

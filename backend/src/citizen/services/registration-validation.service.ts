@@ -5,10 +5,28 @@ import * as swMessages from '../../i18n/sw/sw.json';
 @Injectable()
 export class RegistrationValidationService {
   private readonly validTransitions = new Map<RegistrationStatus, RegistrationStatus[]>([
-    [RegistrationStatus.PENDING, [RegistrationStatus.BIOMETRIC_VERIFICATION]],
-    [RegistrationStatus.BIOMETRIC_VERIFICATION, [RegistrationStatus.DOCUMENT_VERIFICATION]],
-    [RegistrationStatus.DOCUMENT_VERIFICATION, [RegistrationStatus.NIDA_VERIFICATION]],
-    [RegistrationStatus.NIDA_VERIFICATION, [RegistrationStatus.APPROVED, RegistrationStatus.REJECTED]],
+    [RegistrationStatus.PENDING, [
+      RegistrationStatus.BIOMETRIC_VERIFICATION,
+      RegistrationStatus.DOCUMENT_VERIFICATION,
+      RegistrationStatus.NIDA_VERIFICATION,
+      RegistrationStatus.APPROVED,
+      RegistrationStatus.REJECTED
+    ]],
+    [RegistrationStatus.BIOMETRIC_VERIFICATION, [
+      RegistrationStatus.DOCUMENT_VERIFICATION,
+      RegistrationStatus.NIDA_VERIFICATION,
+      RegistrationStatus.APPROVED,
+      RegistrationStatus.REJECTED
+    ]],
+    [RegistrationStatus.DOCUMENT_VERIFICATION, [
+      RegistrationStatus.NIDA_VERIFICATION,
+      RegistrationStatus.APPROVED,
+      RegistrationStatus.REJECTED
+    ]],
+    [RegistrationStatus.NIDA_VERIFICATION, [
+      RegistrationStatus.APPROVED,
+      RegistrationStatus.REJECTED
+    ]],
     [RegistrationStatus.APPROVED, []],
     [RegistrationStatus.REJECTED, [RegistrationStatus.PENDING]]
   ]);
@@ -21,7 +39,7 @@ export class RegistrationValidationService {
   }
 
   validateApproval(currentStatus: RegistrationStatus): void {
-    if (currentStatus !== RegistrationStatus.NIDA_VERIFICATION) {
+    if (currentStatus === RegistrationStatus.APPROVED || currentStatus === RegistrationStatus.REJECTED) {
       throw new BadRequestException(swMessages.citizen.invalid_approval_status);
     }
   }
@@ -31,7 +49,7 @@ export class RegistrationValidationService {
       throw new BadRequestException(swMessages.citizen.rejection_reason_required);
     }
 
-    if (currentStatus !== RegistrationStatus.NIDA_VERIFICATION) {
+    if (currentStatus === RegistrationStatus.APPROVED || currentStatus === RegistrationStatus.REJECTED) {
       throw new BadRequestException(swMessages.citizen.invalid_rejection_status);
     }
   }

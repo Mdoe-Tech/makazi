@@ -1,32 +1,29 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 export enum AuditAction {
-  CREATE = 'create',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  LOGIN = 'login',
-  LOGOUT = 'logout',
-  VERIFY = 'verify',
-  REJECT = 'reject',
-  APPROVE = 'approve',
-  EXPORT = 'export',
-  IMPORT = 'import',
-  CONFIG_CHANGE = 'config_change'
+  CREATE = 'CREATE',
+  UPDATE = 'UPDATE',
+  DELETE = 'DELETE',
+  LOGIN = 'LOGIN',
+  LOGOUT = 'LOGOUT',
+  APPROVE = 'APPROVE',
+  REJECT = 'REJECT',
+  VERIFY = 'VERIFY'
 }
 
 export enum AuditEntity {
-  CITIZEN = 'citizen',
-  DOCUMENT = 'document',
-  BIOMETRIC = 'biometric',
-  ADMIN = 'admin',
-  SYSTEM_CONFIG = 'system_config',
-  REPORT = 'report'
+  CITIZEN = 'CITIZEN',
+  DOCUMENT = 'DOCUMENT',
+  BIOMETRIC = 'BIOMETRIC',
+  ADMIN = 'ADMIN',
+  LETTER = 'LETTER',
+  NOTIFICATION = 'NOTIFICATION'
 }
 
 @Entity('audit_logs')
 export class AuditLog {
-  @PrimaryGeneratedColumn()
-  log_id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({
     type: 'enum',
@@ -38,33 +35,23 @@ export class AuditLog {
     type: 'enum',
     enum: AuditEntity
   })
-  entity: AuditEntity;
+  entity_type: AuditEntity;
 
   @Column()
-  entity_id: number;
+  entity_id: string;
 
   @Column()
-  user_id: number;
+  user_id: string;
 
-  @Column()
-  user_role: string;
+  @Column({ type: 'jsonb', nullable: true })
+  changes: Record<string, any>;
 
-  @Column('jsonb')
-  changes: {
-    before?: any;
-    after?: any;
-    fields?: string[];
-  };
-
-  @Column({ nullable: true })
-  ip_address: string;
-
-  @Column({ nullable: true })
-  user_agent: string;
-
-  @Column({ nullable: true })
-  additional_info: string;
+  @Column({ type: 'jsonb', nullable: true })
+  metadata: Record<string, any>;
 
   @CreateDateColumn()
   created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
 } 

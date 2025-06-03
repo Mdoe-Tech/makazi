@@ -1,23 +1,49 @@
 import { Injectable } from '@nestjs/common';
-import { BaseRepository } from '../database/base.repository';
-import { DatabaseService } from '../database/database.service';
-import { SystemConfig } from './entities/system-config.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { SystemConfig, ConfigCategory } from './entities/system-config.entity';
 
 @Injectable()
-export class SystemConfigRepository extends BaseRepository<SystemConfig> {
-  constructor(databaseService: DatabaseService) {
-    super(databaseService, 'system_configs');
-  }
+export class SystemConfigRepository {
+  constructor(
+    @InjectRepository(SystemConfig)
+    private readonly repository: Repository<SystemConfig>
+  ) {}
 
   async findAll(): Promise<SystemConfig[]> {
-    return this.find({});
+    return this.repository.find();
   }
 
-  async findByKey(key: string): Promise<SystemConfig | null> {
-    const result = await this.databaseService.query(
-      `SELECT * FROM ${this.tableName} WHERE key = $1`,
-      [key]
-    );
-    return result.rows[0] || null;
+  async findOne(key: string): Promise<SystemConfig | null> {
+    return this.repository.findOne({ where: { key } });
+  }
+
+  async create(data: Partial<SystemConfig>): Promise<SystemConfig> {
+    const config = this.repository.create(data);
+    return this.repository.save(config);
+  }
+
+  async update(key: string, data: Partial<SystemConfig>): Promise<SystemConfig> {
+    await this.repository.update({ key }, data);
+    return this.findOne(key);
+  }
+
+  async findByCategory(category: ConfigCategory): Promise<SystemConfig[]> {
+    return this.repository.find({
+      where: { category }
+    });
+  }
+
+  async toggleActive(key: string): Promise<SystemConfig> {
+    const config = await this.findOne(key);
+    if (!config) {
+      throw new Error('Config not found');
+    }
+    config.is_active = !config.is_active;
+    return this.repository.save(config);
+  }
+
+  async remove(key: string): Promise<void> {
+    await this.repository.delete({ key });
   }
 } 

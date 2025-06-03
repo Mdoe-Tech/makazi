@@ -1,39 +1,62 @@
 import { Injectable } from '@nestjs/common';
-import { BaseRepository } from '../database/base.repository';
-import { DatabaseService } from '../database/database.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { IntegrationConfig } from './entities/integration-config.entity';
 
 @Injectable()
-export class IntegrationRepository extends BaseRepository<IntegrationConfig> {
-  constructor(databaseService: DatabaseService) {
-    super(databaseService, 'integration_config');
-  }
+export class IntegrationRepository {
+  constructor(
+    @InjectRepository(IntegrationConfig)
+    private readonly repository: Repository<IntegrationConfig>
+  ) {}
 
   async findAll(): Promise<IntegrationConfig[]> {
-    return this.find({});
+    return this.repository.find();
+  }
+
+  async findOne(id: string): Promise<IntegrationConfig | null> {
+    return this.repository.findOne({ where: { id } });
   }
 
   async findByType(type: string): Promise<IntegrationConfig | null> {
-    const result = await this.databaseService.query(
-      `SELECT * FROM ${this.tableName} WHERE metadata->>'provider' = $1`,
-      [type]
-    );
-    return result.rows[0] || null;
+    return this.repository.findOne({
+      where: {
+        metadata: {
+          provider: type
+        }
+      }
+    });
   }
 
   async findByStatus(status: string): Promise<IntegrationConfig[]> {
-    const result = await this.databaseService.query(
-      `SELECT * FROM ${this.tableName} WHERE metadata->>'status' = $1`,
-      [status]
-    );
-    return result.rows;
+    return this.repository.find({
+      where: {
+        metadata: {
+          status: status
+        }
+      }
+    });
   }
 
   async findActive(): Promise<IntegrationConfig[]> {
-    const result = await this.databaseService.query(
-      `SELECT * FROM ${this.tableName} WHERE is_active = true`,
-      []
-    );
-    return result.rows;
+    return this.repository.find({
+      where: {
+        is_active: true
+      }
+    });
+  }
+
+  async create(data: Partial<IntegrationConfig>): Promise<IntegrationConfig> {
+    const config = this.repository.create(data);
+    return this.repository.save(config);
+  }
+
+  async update(id: string, data: Partial<IntegrationConfig>): Promise<IntegrationConfig> {
+    await this.repository.update(id, data);
+    return this.findOne(id);
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.repository.delete(id);
   }
 } 

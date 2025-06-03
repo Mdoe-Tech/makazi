@@ -1,97 +1,54 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { SystemConfig } from './entities/system-config.entity';
+import { Injectable } from '@nestjs/common';
+import { SystemConfigRepository } from './system-config.repository';
+import { SystemConfig, ConfigCategory } from './entities/system-config.entity';
 import { LoggingService } from '../logging/logging.service';
 import * as swMessages from '../i18n/sw/sw.json';
-import { SystemConfigRepository } from './system-config.repository';
+import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class SystemConfigService {
-  private configCache: Map<string, any> = new Map();
-
   constructor(
-    private readonly configRepository: SystemConfigRepository,
+    private readonly systemConfigRepository: SystemConfigRepository,
     private readonly loggingService: LoggingService
-  ) {
-    this.initializeCache();
+  ) {}
+
+  async findAll(): Promise<SystemConfig[]> {
+    return this.systemConfigRepository.findAll();
   }
 
-  private async initializeCache() {
-    const configs = await this.configRepository.findAll();
-    configs.forEach(config => {
-      this.configCache.set(config.key, config.value);
-    });
-  }
-
-  async getConfig(key: string): Promise<any> {
-    if (this.configCache.has(key)) {
-      return this.configCache.get(key);
-    }
-
-    const config = await this.configRepository.findByKey(key);
-
-    if (!config || !config.is_active) {
-      throw new NotFoundException(swMessages.config.not_found);
-    }
-
-    this.configCache.set(key, config.value);
-    return config.value;
-  }
-
-  async setConfig(key: string, value: any, userId: number): Promise<SystemConfig> {
-    let config = await this.configRepository.findByKey(key);
-
-    if (config) {
-      config.value = value;
-      config.metadata.last_modified_by = userId.toString();
-      config = await this.configRepository.update(config.id.toString(), config);
-    } else {
-      config = await this.configRepository.create({
-        key,
-        value,
-        metadata: {
-          category: this.getDefaultCategory(key),
-          data_type: typeof value,
-          validation_rules: {},
-          last_modified_by: userId.toString()
-        },
-        description: this.getDefaultDescription(key)
-      });
-    }
-
-    this.configCache.set(key, value);
-    this.loggingService.log(`System config updated: ${key}`);
-    return config;
-  }
-
-  async getAllConfigs(): Promise<SystemConfig[]> {
-    return this.configRepository.findAll();
-  }
-
-  async getConfigsByCategory(category: string): Promise<SystemConfig[]> {
-    const configs = await this.configRepository.findAll();
-    return configs.filter(config => config.metadata.category === category);
-  }
-
-  async toggleConfig(key: string, userId: number): Promise<SystemConfig> {
-    const config = await this.configRepository.findByKey(key);
-
+  async findOne(key: string): Promise<SystemConfig> {
+    const config = await this.systemConfigRepository.findOne(key);
     if (!config) {
       throw new NotFoundException(swMessages.config.not_found);
     }
+    return config;
+  }
 
-    config.is_active = !config.is_active;
-    config.metadata.last_modified_by = userId.toString();
+  async create(data: Partial<SystemConfig>): Promise<SystemConfig> {
+    const config = await this.systemConfigRepository.create(data);
+    await this.loggingService.log(`System config created: ${config.key}`);
+    return config;
+  }
 
-    const updatedConfig = await this.configRepository.update(config.id.toString(), config);
-    
-    if (!updatedConfig.is_active) {
-      this.configCache.delete(key);
-    } else {
-      this.configCache.set(key, updatedConfig.value);
-    }
+  async update(key: string, data: Partial<SystemConfig>): Promise<SystemConfig> {
+    const config = await this.systemConfigRepository.update(key, data);
+    await this.loggingService.log(`System config updated: ${key}`);
+    return config;
+  }
 
-    this.loggingService.log(`System config toggled: ${key}`);
-    return updatedConfig;
+  async findByCategory(category: ConfigCategory): Promise<SystemConfig[]> {
+    return this.systemConfigRepository.findByCategory(category);
+  }
+
+  async toggleActive(key: string): Promise<SystemConfig> {
+    const config = await this.systemConfigRepository.toggleActive(key);
+    await this.loggingService.log(`System config toggled: ${key}`);
+    return config;
+  }
+
+  async remove(key: string): Promise<void> {
+    await this.systemConfigRepository.remove(key);
+    await this.loggingService.log(`System config deleted: ${key}`);
   }
 
   private getDefaultDescription(key: string): string {

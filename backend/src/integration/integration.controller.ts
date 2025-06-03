@@ -2,8 +2,9 @@ import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/
 import { IntegrationService } from './integration.service';
 import { IntegrationType } from './entities/integration-config.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard, Role } from '../auth/guards/roles.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../auth/enums/role.enum';
 import { LoggingService } from '../logging/logging.service';
 
 @Controller('integration')
@@ -59,7 +60,7 @@ export class IntegrationController {
   }
 
   @Post('sms/send')
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
   async sendSms(
     @Body() body: {
       phone_number: string;
@@ -71,7 +72,7 @@ export class IntegrationController {
   }
 
   @Post('email/send')
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
   async sendEmail(
     @Body() body: {
       to: string;

@@ -226,5 +226,12 @@
     "welcome": "Karibu",
     "error": "Hitilafu",
     "success": "Mafanikio"
+  },
+  "letter": {
+    "not_found": "Barua haipatikani",
+    "invalid_status": "Hali ya barua haifai kwa hatua hii",
+    "already_approved": "Barua tayari imekubaliwa",
+    "already_rejected": "Barua tayari imekataliwa",
+    "rejection_reason_required": "Sababu ya kukataa inahitajika"
   }
 } 

@@ -1,7 +1,11 @@
 export enum Role {
-  ADMIN = 'admin',
-  SUPER_ADMIN = 'super_admin',
-  REGISTRAR = 'registrar',
-  VERIFIER = 'verifier',
-  APPROVER = 'approver'
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  REGIONAL_ADMIN = 'REGIONAL_ADMIN',
+  DISTRICT_ADMIN = 'DISTRICT_ADMIN',
+  WARD_ADMIN = 'WARD_ADMIN',
+  OFFICE_ADMIN = 'OFFICE_ADMIN',
+  REGISTRAR = 'REGISTRAR',
+  VERIFIER = 'VERIFIER',
+  APPROVER = 'APPROVER',
+  VIEWER = 'VIEWER'
 } 

@@ -2,8 +2,9 @@ import { Controller, Post, Get, Body, Param, UseGuards, Request } from '@nestjs/
 import { ReportingService } from './reporting.service';
 import { ReportType, ReportFormat } from './entities/report.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard, Role } from '../auth/guards/roles.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../auth/enums/role.enum';
 import { LoggingService } from '../logging/logging.service';
 
 @Controller('reports')
@@ -15,7 +16,7 @@ export class ReportingController {
   ) {}
 
   @Post('generate')
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
   async generateReport(
     @Body() body: {
       type: ReportType;
@@ -34,19 +35,19 @@ export class ReportingController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
   async findAll() {
     return this.reportingService.findAll();
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
   async findOne(@Param('id') id: number) {
-    return this.reportingService.findOne(id);
+    return this.reportingService.findOne(id.toString());
   }
 
   @Get('type/:type')
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
   async findByType(@Param('type') type: ReportType) {
     return this.reportingService.findByType(type);
   }

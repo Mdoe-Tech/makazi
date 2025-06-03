@@ -2,8 +2,9 @@ import { Controller, Get, Post, Body, Param, UseGuards, Query } from '@nestjs/co
 import { AuditService } from './audit.service';
 import { AuditAction, AuditEntity } from './entities/audit-log.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard, Role } from '../auth/guards/roles.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../auth/enums/role.enum';
 import { LoggingService } from '../logging/logging.service';
 
 @Controller('audit')
@@ -15,34 +16,34 @@ export class AuditController {
   ) {}
 
   @Get()
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
   async findAll() {
     return this.auditService.findAll();
   }
 
   @Get('entity/:entity/:id')
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
   async findByEntity(
     @Param('entity') entity: AuditEntity,
     @Param('id') id: number
   ) {
-    return this.auditService.findByEntity(entity, id);
+    return this.auditService.findByEntity(entity, id.toString());
   }
 
   @Get('user/:id')
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
   async findByUser(@Param('id') id: number) {
-    return this.auditService.findByUser(id);
+    return this.auditService.findByUser(id.toString());
   }
 
   @Get('action/:action')
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
   async findByAction(@Param('action') action: AuditAction) {
     return this.auditService.findByAction(action);
   }
 
   @Get('date-range')
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
   async findByDateRange(
     @Query('start_date') startDate: string,
     @Query('end_date') endDate: string

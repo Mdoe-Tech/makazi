@@ -1,20 +1,15 @@
-import { Module, Global } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { DatabaseService } from './database.service';
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { getTypeOrmConfig } from '../config/typeorm.config';
 
-@Global()
 @Module({
-  imports: [ConfigModule],
-  providers: [
-    DatabaseService,
-    {
-      provide: 'DATABASE_CONNECTION',
-      useFactory: async (databaseService: DatabaseService) => {
-        return databaseService;
-      },
-      inject: [DatabaseService],
-    },
+  imports: [
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => getTypeOrmConfig(configService),
+      inject: [ConfigService],
+    }),
   ],
-  exports: [DatabaseService, 'DATABASE_CONNECTION'],
 })
 export class DatabaseModule {} 

@@ -3,14 +3,26 @@ import { validate } from 'class-validator';
 import { plainToClass } from 'class-transformer';
 import * as swMessages from '../../i18n/sw/sw.json';
 
+export interface ValidationPipeOptions {
+  transform?: boolean;
+}
+
 @Injectable()
 export class ValidationPipe implements PipeTransform<any> {
+  private readonly shouldTransform: boolean;
+
+  constructor(options?: ValidationPipeOptions) {
+    this.shouldTransform = options?.transform ?? false;
+  }
+
   async transform(value: any, { metatype }: ArgumentMetadata) {
     if (!metatype || !this.toValidate(metatype)) {
       return value;
     }
 
-    const object = plainToClass(metatype, value);
+    const object = plainToClass(metatype, value, {
+      enableImplicitConversion: this.shouldTransform
+    });
     const errors = await validate(object);
 
     if (errors.length > 0) {

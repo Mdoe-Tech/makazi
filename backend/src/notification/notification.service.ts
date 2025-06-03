@@ -64,7 +64,7 @@ export class NotificationService {
   }
 
   async remove(id: string) {
-    await this.notificationRepository.delete(id);
+    await this.notificationRepository.remove(id);
   }
 
   async recordDeliveryAttempt(

@@ -3,8 +3,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentService } from './document.service';
 import { CreateDocumentDto, VerifyDocumentDto, RejectDocumentDto } from './dto/create-document.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard, Role } from '../auth/guards/roles.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../auth/enums/role.enum';
 import { ValidationPipe } from '../common/pipes/validation.pipe';
 import { LoggingService } from '../logging/logging.service';
 
@@ -30,21 +31,21 @@ export class DocumentController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.REGISTRAR, Role.VERIFIER)
+  @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER)
   async findAll() {
     this.loggingService.log('Fetching all documents');
     return this.documentService.findAll();
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.REGISTRAR, Role.VERIFIER)
+  @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER)
   async findOne(@Param('id') id: number) {
     this.loggingService.log(`Fetching document ${id}`);
     return this.documentService.findOne(id.toString());
   }
 
   @Get('citizen/:id')
-  @Roles(Role.ADMIN, Role.REGISTRAR, Role.VERIFIER)
+  @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER)
   async findByCitizenId(@Param('id') citizenId: number) {
     this.loggingService.log(`Fetching documents for citizen ${citizenId}`);
     return this.documentService.findByCitizenId(citizenId.toString());
@@ -75,7 +76,7 @@ export class DocumentController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.OFFICE_ADMIN)
   async remove(@Param('id') id: number) {
     this.loggingService.log(`Deleting document ${id}`);
     return this.documentService.remove(id.toString());

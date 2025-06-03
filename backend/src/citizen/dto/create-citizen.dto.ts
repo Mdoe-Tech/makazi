@@ -1,4 +1,5 @@
 import { IsString, IsDate, IsOptional, IsEnum, Matches, Length } from 'class-validator';
+import { Type } from 'class-transformer';
 import { Gender, MaritalStatus, EmploymentStatus } from '../enums/citizen.enum';
 
 export class CreateCitizenDto {
@@ -20,6 +21,7 @@ export class CreateCitizenDto {
   @Length(2, 50)
   other_names?: string;
 
+  @Type(() => Date)
   @IsDate()
   date_of_birth: Date;
 
@@ -33,6 +35,10 @@ export class CreateCitizenDto {
 
   @IsEnum(Gender)
   gender: Gender;
+
+  @IsString()
+  @Length(2, 50)
+  nationality: string;
 
   @IsEnum(MaritalStatus)
   marital_status: MaritalStatus;
@@ -62,5 +68,9 @@ export class CreateCitizenDto {
 
   @IsOptional()
   contact_details?: any;
+
+  @IsString()
+  @Matches(/^\d{16}$/, { message: 'Namba ya NIDA inahitaji kuwa na namba 16' })
+  nida_number: string;
 } 
  

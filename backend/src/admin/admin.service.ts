@@ -102,7 +102,10 @@ export class AdminService {
   }
 
   async remove(id: string) {
-    await this.adminRepository.delete(id);
+    // Check if admin exists before deleting
+    await this.findOne(id);
+    await this.adminRepository.remove(id);
+    return { message: 'Admin deleted successfully' };
   }
 
   async updateLastLogin(id: string, ipAddress: string, userAgent: string) {

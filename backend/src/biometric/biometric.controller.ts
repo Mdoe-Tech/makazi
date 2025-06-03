@@ -3,8 +3,9 @@ import { BiometricService } from './biometric.service';
 import { BiometricMatchingService } from './services/biometric-matching.service';
 import { CreateBiometricDto } from './dto/create-biometric.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard, Role } from '../auth/guards/roles.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../auth/enums/role.enum';
 import { ValidationPipe } from '../common/pipes/validation.pipe';
 import { LoggingService } from '../logging/logging.service';
 
@@ -29,21 +30,21 @@ export class BiometricController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.REGISTRAR, Role.VERIFIER)
+  @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER)
   async findAll() {
     this.loggingService.log('Fetching all biometric records');
     return this.biometricService.findAll();
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.REGISTRAR, Role.VERIFIER)
+  @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER)
   async findOne(@Param('id') id: number) {
     this.loggingService.log(`Fetching biometric record ${id}`);
     return this.biometricService.findOne(id.toString());
   }
 
   @Get('citizen/:id')
-  @Roles(Role.ADMIN, Role.REGISTRAR, Role.VERIFIER)
+  @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER)
   async findByCitizenId(@Param('id') citizenId: number) {
     this.loggingService.log(`Fetching biometric data for citizen ${citizenId}`);
     return this.biometricService.findByCitizenId(citizenId.toString());
@@ -70,7 +71,7 @@ export class BiometricController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.OFFICE_ADMIN)
   async remove(@Param('id') id: number) {
     this.loggingService.log(`Deleting biometric record ${id}`);
     return this.biometricService.remove(id.toString());

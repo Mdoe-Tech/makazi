@@ -1,44 +1,52 @@
 import { Injectable } from '@nestjs/common';
-import { BaseRepository } from '../database/base.repository';
-import { DatabaseService } from '../database/database.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Admin } from './entities/admin.entity';
 
 @Injectable()
-export class AdminRepository extends BaseRepository<Admin> {
-  constructor(databaseService: DatabaseService) {
-    super(databaseService, 'admin');
-  }
+export class AdminRepository {
+  constructor(
+    @InjectRepository(Admin)
+    private readonly repository: Repository<Admin>
+  ) {}
 
   async findAll(): Promise<Admin[]> {
-    return this.find({});
+    return this.repository.find();
+  }
+
+  async findOne(id: string): Promise<Admin | null> {
+    return this.repository.findOne({ where: { id } });
   }
 
   async findByUsername(username: string): Promise<Admin | null> {
-    const result = await this.databaseService.query(
-      `SELECT * FROM ${this.tableName} WHERE username = $1`,
-      [username]
-    );
-    return result.rows[0] || null;
+    return this.repository.findOne({ where: { username } });
   }
 
   async findByEmail(email: string): Promise<Admin | null> {
-    const result = await this.databaseService.query(
-      `SELECT * FROM ${this.tableName} WHERE email = $1`,
-      [email]
-    );
-    return result.rows[0] || null;
+    return this.repository.findOne({ where: { email } });
+  }
+
+  async create(data: Partial<Admin>): Promise<Admin> {
+    const admin = this.repository.create(data);
+    return this.repository.save(admin);
+  }
+
+  async update(id: string, data: Partial<Admin>): Promise<Admin> {
+    await this.repository.update(id, data);
+    return this.findOne(id);
   }
 
   async updateLastLogin(id: string, ipAddress: string, userAgent: string): Promise<void> {
-    await this.databaseService.query(
-      `UPDATE ${this.tableName} 
-       SET last_login = jsonb_build_object(
-         'timestamp', CURRENT_TIMESTAMP,
-         'ip_address', $1,
-         'user_agent', $2
-       )
-       WHERE id = $3`,
-      [ipAddress, userAgent, id]
-    );
+    await this.repository.update(id, {
+      last_login: {
+        timestamp: new Date(),
+        ip_address: ipAddress,
+        user_agent: userAgent
+      }
+    });
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.repository.delete(id);
   }
 } 

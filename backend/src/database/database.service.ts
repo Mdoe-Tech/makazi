@@ -4,27 +4,30 @@ import { Pool, PoolConfig } from 'pg';
 
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
-  private pool: Pool;
+  private static pool: Pool;
+  private static isEnding = false;
 
   constructor(private configService: ConfigService) {
-    const config: PoolConfig = {
-      host: this.configService.get('DATABASE_HOST', 'localhost'),
-      port: this.configService.get('DATABASE_PORT', 5432),
-      user: this.configService.get('DATABASE_USERNAME', 'postgres'),
-      password: this.configService.get('DATABASE_PASSWORD'),
-      database: this.configService.get('DATABASE_NAME', 'makazi'),
-      max: 20, // Maximum number of clients in the pool
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 2000,
-    };
+    if (!DatabaseService.pool) {
+      const config: PoolConfig = {
+        host: this.configService.get('DATABASE_HOST', 'localhost'),
+        port: this.configService.get('DATABASE_PORT', 5432),
+        user: this.configService.get('DATABASE_USERNAME', 'postgres'),
+        password: this.configService.get('DATABASE_PASSWORD'),
+        database: this.configService.get('DATABASE_NAME', 'makazi'),
+        max: 20, // Maximum number of clients in the pool
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 2000,
+      };
 
-    this.pool = new Pool(config);
+      DatabaseService.pool = new Pool(config);
+    }
   }
 
   async onModuleInit() {
     try {
       // Test the connection
-      const client = await this.pool.connect();
+      const client = await DatabaseService.pool.connect();
       console.log('Successfully connected to PostgreSQL database');
       client.release();
     } catch (error) {
@@ -34,11 +37,15 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy() {
-    await this.pool.end();
+    if (DatabaseService.pool && !DatabaseService.isEnding) {
+      DatabaseService.isEnding = true;
+      await DatabaseService.pool.end();
+      DatabaseService.pool = null;
+    }
   }
 
   async query(text: string, params?: any[]) {
-    const client = await this.pool.connect();
+    const client = await DatabaseService.pool.connect();
     try {
       const result = await client.query(text, params);
       return result;
@@ -48,7 +55,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   }
 
   async getClient() {
-    return await this.pool.connect();
+    return await DatabaseService.pool.connect();
   }
 
   async dropConstraints() {
@@ -56,7 +63,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     try {
       await client.query('BEGIN');
 
-      // Drop foreign key constraints first
+      // Drop all foreign key constraints
       await client.query(`
         DO $$ 
         DECLARE
@@ -65,16 +72,28 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
           FOR r IN (SELECT tc.constraint_name, tc.table_name
                    FROM information_schema.table_constraints tc
                    WHERE tc.constraint_type = 'FOREIGN KEY'
-                   AND tc.table_name IN ('document', 'biometric', 'notification')
-                   AND tc.constraint_name LIKE '%citizen_id%')
+                   AND tc.table_schema = 'public')
           LOOP
             EXECUTE format('ALTER TABLE %I DROP CONSTRAINT %I', r.table_name, r.constraint_name);
           END LOOP;
         END $$;
       `);
 
-      // Now drop the primary key constraint
-      await client.query('ALTER TABLE citizen DROP CONSTRAINT IF EXISTS PK_42173d8db4506cbe5f5684a41fb');
+      // Drop primary key constraints
+      await client.query(`
+        DO $$ 
+        DECLARE
+          r RECORD;
+        BEGIN
+          FOR r IN (SELECT tc.constraint_name, tc.table_name
+                   FROM information_schema.table_constraints tc
+                   WHERE tc.constraint_type = 'PRIMARY KEY'
+                   AND tc.table_schema = 'public')
+          LOOP
+            EXECUTE format('ALTER TABLE %I DROP CONSTRAINT %I', r.table_name, r.constraint_name);
+          END LOOP;
+        END $$;
+      `);
 
       await client.query('COMMIT');
       console.log('Successfully dropped constraints');

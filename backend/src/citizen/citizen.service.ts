@@ -71,14 +71,14 @@ export class CitizenService {
   }
 
   async remove(id: string) {
-    await this.citizenRepository.delete(id);
+    await this.citizenRepository.remove(id);
   }
 
   async submitBiometricData(id: string, biometricData: BiometricDataDto) {
     const citizen = await this.findOne(id);
     
-    if (citizen.registration_status !== RegistrationStatus.PENDING &&
-        citizen.registration_status !== RegistrationStatus.BIOMETRIC_VERIFICATION) {
+    if (citizen.registration_status === RegistrationStatus.APPROVED || 
+        citizen.registration_status === RegistrationStatus.REJECTED) {
       throw new BadRequestException(swMessages.citizen.invalid_status);
     }
 
@@ -101,7 +101,7 @@ export class CitizenService {
     
     await this.notificationService.sendStatusChangeNotification(
       citizen.id,
-      RegistrationStatus.PENDING,
+      citizen.registration_status,
       RegistrationStatus.BIOMETRIC_VERIFICATION,
       citizen.phone_number
     );
@@ -112,8 +112,8 @@ export class CitizenService {
   async submitDocuments(id: string, documents: DocumentsDto) {
     const citizen = await this.findOne(id);
     
-    if (citizen.registration_status !== RegistrationStatus.PENDING &&
-        citizen.registration_status !== RegistrationStatus.BIOMETRIC_VERIFICATION) {
+    if (citizen.registration_status === RegistrationStatus.APPROVED || 
+        citizen.registration_status === RegistrationStatus.REJECTED) {
       throw new BadRequestException(swMessages.citizen.invalid_status);
     }
 
@@ -122,7 +122,7 @@ export class CitizenService {
       RegistrationStatus.DOCUMENT_VERIFICATION
     );
 
-    const updatedCitizen = await this.citizenRepository.updateDocuments(id, documents);
+    await this.citizenRepository.updateDocuments(id, documents);
     await this.citizenRepository.updateRegistrationStatus(
       id,
       RegistrationStatus.DOCUMENT_VERIFICATION
@@ -130,18 +130,19 @@ export class CitizenService {
     
     await this.notificationService.sendStatusChangeNotification(
       id,
-      RegistrationStatus.BIOMETRIC_VERIFICATION,
+      citizen.registration_status,
       RegistrationStatus.DOCUMENT_VERIFICATION,
       citizen.phone_number
     );
 
-    return updatedCitizen;
+    return this.findOne(id);
   }
 
   async verifyNIDA(id: string, nidaNumber: string) {
     const citizen = await this.findOne(id);
     
-    if (citizen.registration_status !== RegistrationStatus.DOCUMENT_VERIFICATION) {
+    if (citizen.registration_status === RegistrationStatus.APPROVED || 
+        citizen.registration_status === RegistrationStatus.REJECTED) {
       throw new BadRequestException(swMessages.citizen.invalid_status);
     }
 
@@ -161,7 +162,7 @@ export class CitizenService {
     
     await this.notificationService.sendStatusChangeNotification(
       id,
-      RegistrationStatus.DOCUMENT_VERIFICATION,
+      citizen.registration_status,
       RegistrationStatus.NIDA_VERIFICATION,
       citizen.phone_number
     );
@@ -172,7 +173,8 @@ export class CitizenService {
   async approveRegistration(id: string) {
     const citizen = await this.findOne(id);
     
-    if (citizen.registration_status !== RegistrationStatus.NIDA_VERIFICATION) {
+    if (citizen.registration_status === RegistrationStatus.APPROVED || 
+        citizen.registration_status === RegistrationStatus.REJECTED) {
       throw new BadRequestException(swMessages.citizen.invalid_status);
     }
 
@@ -201,7 +203,8 @@ export class CitizenService {
   async rejectRegistration(id: string, reason: string) {
     const citizen = await this.findOne(id);
     
-    if (citizen.registration_status !== RegistrationStatus.NIDA_VERIFICATION) {
+    if (citizen.registration_status === RegistrationStatus.APPROVED || 
+        citizen.registration_status === RegistrationStatus.REJECTED) {
       throw new BadRequestException(swMessages.citizen.invalid_status);
     }
 
@@ -211,7 +214,7 @@ export class CitizenService {
       RegistrationStatus.REJECTED
     );
 
-    const updatedCitizen = await this.citizenRepository.update(id, {
+    await this.citizenRepository.update(id, {
       rejection_reason: reason
     });
 
@@ -226,6 +229,6 @@ export class CitizenService {
       reason
     );
 
-    return updatedCitizen;
+    return this.findOne(id);
   }
 } 

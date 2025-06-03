@@ -47,7 +47,7 @@ export class BiometricService {
   }
 
   async remove(id: string) {
-    await this.biometricRepository.delete(id);
+    await this.biometricRepository.remove(id);
     this.loggingService.log(`Biometric record ${id} deleted`);
   }
 } 

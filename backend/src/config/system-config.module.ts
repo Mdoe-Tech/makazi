@@ -1,17 +1,18 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { SystemConfigService } from './system-config.service';
 import { SystemConfigController } from './system-config.controller';
 import { SystemConfigRepository } from './system-config.repository';
-import { DatabaseModule } from '../database/database.module';
+import { SystemConfig } from './entities/system-config.entity';
 import { LoggingModule } from '../logging/logging.module';
 
 @Module({
   imports: [
-    DatabaseModule,
+    TypeOrmModule.forFeature([SystemConfig]),
     LoggingModule
   ],
-  controllers: [SystemConfigController],
   providers: [SystemConfigService, SystemConfigRepository],
+  controllers: [SystemConfigController],
   exports: [SystemConfigService]
 })
 export class SystemConfigModule {} 

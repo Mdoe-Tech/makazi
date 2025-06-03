@@ -1,20 +1,19 @@
-import { Entity, Column } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { BaseEntity } from '../../common/entities/base.entity';
 
 export enum ReportType {
-  REGISTRATION_STATS = 'registration_stats',
-  PROCESSING_TIMES = 'processing_times',
-  SUCCESS_RATES = 'success_rates',
-  USER_ACTIVITY = 'user_activity',
-  DOCUMENT_VERIFICATION = 'document_verification',
-  BIOMETRIC_VALIDATION = 'biometric_validation'
+  CITIZEN_REGISTRATION = 'CITIZEN_REGISTRATION',
+  DOCUMENT_VERIFICATION = 'DOCUMENT_VERIFICATION',
+  LETTER_ISSUANCE = 'LETTER_ISSUANCE',
+  SYSTEM_ACTIVITY = 'SYSTEM_ACTIVITY',
+  COMPLIANCE = 'COMPLIANCE'
 }
 
 export enum ReportFormat {
-  PDF = 'pdf',
-  EXCEL = 'excel',
-  CSV = 'csv',
-  JSON = 'json'
+  PDF = 'PDF',
+  EXCEL = 'EXCEL',
+  CSV = 'CSV',
+  JSON = 'JSON'
 }
 
 export enum ReportStatus {
@@ -24,34 +23,41 @@ export enum ReportStatus {
   FAILED = 'failed'
 }
 
-@Entity()
+@Entity('reports')
 export class Report extends BaseEntity {
-  @Column()
-  report_type: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column()
-  title: string;
+  @Column({
+    type: 'enum',
+    enum: ReportType
+  })
+  type: ReportType;
+
+  @Column({
+    type: 'enum',
+    enum: ReportFormat,
+    default: ReportFormat.PDF
+  })
+  format: ReportFormat;
 
   @Column({ type: 'jsonb' })
-  parameters: {
-    [key: string]: any;
-  };
+  parameters: Record<string, any>;
 
   @Column({ type: 'jsonb' })
-  data: {
-    [key: string]: any;
-  };
+  data: Record<string, any>;
 
   @Column()
   generated_by: string;
 
-  @Column({ type: 'jsonb' })
-  metadata: {
-    format: string;
-    size: number;
-    generation_time: number;
-    filters: any[];
-  };
+  @Column({ nullable: true })
+  file_path: string;
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
 
   @Column({ default: false })
   is_archived: boolean;

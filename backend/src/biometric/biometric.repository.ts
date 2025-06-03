@@ -1,35 +1,68 @@
 import { Injectable } from '@nestjs/common';
-import { BaseRepository } from '../database/base.repository';
-import { DatabaseService } from '../database/database.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, MoreThanOrEqual } from 'typeorm';
 import { Biometric } from './entities/biometric.entity';
 
 @Injectable()
-export class BiometricRepository extends BaseRepository<Biometric> {
-  constructor(databaseService: DatabaseService) {
-    super(databaseService, 'biometric');
-  }
+export class BiometricRepository {
+  constructor(
+    @InjectRepository(Biometric)
+    private readonly repository: Repository<Biometric>
+  ) {}
 
   async findAll(): Promise<Biometric[]> {
-    return this.find({});
+    return this.repository.find();
   }
 
-  async findByCitizenId(citizenId: string): Promise<Biometric | null> {
-    const result = await this.databaseService.query(
-      `SELECT * FROM ${this.tableName} WHERE citizen_id = $1`,
-      [citizenId]
-    );
-    return result.rows[0] || null;
+  async findOne(id: string): Promise<Biometric | null> {
+    return this.repository.findOne({ where: { id } });
+  }
+
+  async findByCitizenId(citizenId: string): Promise<Biometric[]> {
+    return this.repository.find({
+      where: {
+        citizen_id: citizenId
+      }
+    });
+  }
+
+  async create(data: Partial<Biometric>): Promise<Biometric> {
+    const biometric = this.repository.create(data);
+    return this.repository.save(biometric);
+  }
+
+  async update(id: string, data: Partial<Biometric>): Promise<Biometric> {
+    await this.repository.update(id, data);
+    return this.findOne(id);
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.repository.delete(id);
   }
 
   async updateBiometricData(id: string, biometricData: any): Promise<Biometric> {
-    const result = await this.databaseService.query(
-      `UPDATE ${this.tableName} 
-       SET biometric_data = $1,
-           updated_at = CURRENT_TIMESTAMP
-       WHERE id = $2 
-       RETURNING *`,
-      [biometricData, id]
-    );
-    return result.rows[0];
+    await this.repository.update(id, {
+      biometric_data: biometricData,
+      updated_at: new Date()
+    });
+    return this.findOne(id);
+  }
+
+  async findByType(type: string): Promise<Biometric[]> {
+    return this.repository.find({
+      where: {
+        biometric_type: type
+      }
+    });
+  }
+
+  async findByQuality(qualityThreshold: number): Promise<Biometric[]> {
+    return this.repository.find({
+      where: {
+        metadata: {
+          quality_score: MoreThanOrEqual(qualityThreshold)
+        }
+      }
+    });
   }
 } 

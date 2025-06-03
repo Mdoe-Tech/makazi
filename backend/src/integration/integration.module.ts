@@ -1,17 +1,18 @@
 import { Module } from '@nestjs/common';
-import { IntegrationService } from './integration.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { IntegrationController } from './integration.controller';
+import { IntegrationService } from './integration.service';
 import { IntegrationRepository } from './integration.repository';
-import { DatabaseModule } from '../database/database.module';
+import { IntegrationConfig } from './entities/integration-config.entity';
 import { LoggingModule } from '../logging/logging.module';
 
 @Module({
   imports: [
-    DatabaseModule,
+    TypeOrmModule.forFeature([IntegrationConfig]),
     LoggingModule
   ],
   controllers: [IntegrationController],
   providers: [IntegrationService, IntegrationRepository],
-  exports: [IntegrationService]
+  exports: [IntegrationService, IntegrationRepository]
 })
 export class IntegrationModule {} 
