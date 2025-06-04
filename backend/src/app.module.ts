@@ -16,6 +16,7 @@ import { ReportingModule } from './reporting/reporting.module';
 import { SystemConfigModule } from './config/system-config.module';
 import { IntegrationModule } from './integration/integration.module';
 import { LoggingModule } from './logging/logging.module';
+import { NidaModule } from './nida/nida.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { LoggingModule } from './logging/logging.module';
     SystemConfigModule,
     IntegrationModule,
     LoggingModule,
+    NidaModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtAuthGuard, RolesGuard],

@@ -8,6 +8,9 @@ export class Citizen extends BaseEntity {
   @Column({ unique: true })
   nida_number: string;
 
+  @Column({ default: false })
+  is_nida_verified: boolean;
+
   @Column()
   first_name: string;
 
