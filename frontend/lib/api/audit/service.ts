@@ -1,6 +1,6 @@
-import { apiClient } from '../client';
-import { ApiResponse, PaginatedResponse, PaginationParams } from '../types';
-import { AuditLog, AuditFilters } from './types';
+import { apiClientInstance } from '../client';
+import type { PaginatedResponse, PaginationParams } from '../types';
+import type { AuditLog, AuditFilters } from './types';
 
 export class AuditService {
   private static instance: AuditService;
@@ -16,43 +16,43 @@ export class AuditService {
   }
 
   async getAuditLogs(params: PaginationParams & AuditFilters): Promise<PaginatedResponse<AuditLog>> {
-    return apiClient.get<PaginatedResponse<AuditLog>>(this.baseUrl, { params });
+    return apiClientInstance.get<PaginatedResponse<AuditLog>>(this.baseUrl, { params });
   }
 
-  async getAuditLogById(id: string): Promise<ApiResponse<AuditLog>> {
-    return apiClient.get<ApiResponse<AuditLog>>(`${this.baseUrl}/${id}`);
+  async getAuditLogById(id: string): Promise<{ data: AuditLog }> {
+    return apiClientInstance.get<{ data: AuditLog }>(`${this.baseUrl}/${id}`);
   }
 
   async getAuditLogsByUser(userId: string, params: PaginationParams): Promise<PaginatedResponse<AuditLog>> {
-    return apiClient.get<PaginatedResponse<AuditLog>>(`${this.baseUrl}/user/${userId}`, { params });
+    return apiClientInstance.get<PaginatedResponse<AuditLog>>(`${this.baseUrl}/user/${userId}`, { params });
   }
 
   async getAuditLogsByResource(resourceId: string, params: PaginationParams): Promise<PaginatedResponse<AuditLog>> {
-    return apiClient.get<PaginatedResponse<AuditLog>>(`${this.baseUrl}/resource/${resourceId}`, { params });
+    return apiClientInstance.get<PaginatedResponse<AuditLog>>(`${this.baseUrl}/resource/${resourceId}`, { params });
   }
 
   async exportAuditLogs(params: AuditFilters): Promise<Blob> {
-    const response = await apiClient.get<Blob>(`${this.baseUrl}/export`, {
+    const response = await apiClientInstance.get<Blob>(`${this.baseUrl}/export`, {
       params,
       responseType: 'blob'
     });
-    return response;
+    return response as unknown as Blob;
   }
 
-  async getAuditStats(params: AuditFilters): Promise<ApiResponse<{
+  async getAuditStats(params: AuditFilters): Promise<{
     total_actions: number;
     success_count: number;
     failure_count: number;
     actions_by_module: Record<string, number>;
     actions_by_type: Record<string, number>;
-  }>> {
-    return apiClient.get<ApiResponse<{
+  }> {
+    return apiClientInstance.get<{
       total_actions: number;
       success_count: number;
       failure_count: number;
       actions_by_module: Record<string, number>;
       actions_by_type: Record<string, number>;
-    }>>(`${this.baseUrl}/stats`, { params });
+    }>(`${this.baseUrl}/stats`, { params });
   }
 }
 

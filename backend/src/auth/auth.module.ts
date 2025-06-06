@@ -8,6 +8,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AdminModule } from '../admin/admin.module';
 import { LoggingModule } from '../logging/logging.module';
+import { CitizenModule } from '../citizen/citizen.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { LoggingModule } from '../logging/logging.module';
       inject: [ConfigService],
     }),
     AdminModule,
-    LoggingModule
+    LoggingModule,
+    CitizenModule
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtStrategy],

@@ -10,6 +10,7 @@ CREATE TABLE "nida" (
   "last_name" character varying NOT NULL,
   "other_names" character varying,
   "date_of_birth" character varying NOT NULL,
+  "nationality" character varying NOT NULL,
   "birth_certificate_number" character varying,
   "phone_number" character varying,
   "gender" character varying NOT NULL,

@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { NidaRepository } from './nida.repository';
-import { NidaData, NidaFilters, VerifyNidaDto, NidaVerificationResult } from './dto/nida.types';
+import { NidaData, NidaFilters, VerifyNidaDto, NidaVerificationResult } from './types';
 
 @Injectable()
 export class NidaService {
   constructor(private readonly nidaRepository: NidaRepository) {}
 
-  async registerNida(data: Omit<NidaData, 'nida_number'>, citizenId: string): Promise<{ data: NidaData }> {
-    return this.nidaRepository.registerNida(data, citizenId);
+  async registerNida(data: Omit<NidaData, 'nida_number'>): Promise<{ data: NidaData }> {
+    const nida = await this.nidaRepository.registerNida(data);
+    return { data: nida };
   }
 
   async getNidaData(filters: NidaFilters): Promise<{ data: NidaData[]; total: number }> {

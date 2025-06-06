@@ -1,24 +1,24 @@
 import { BaseEntity } from '../types';
 
 export enum Gender {
-  MALE = 'MALE',
-  FEMALE = 'FEMALE',
-  OTHER = 'OTHER'
+  MALE = 'male',
+  FEMALE = 'female',
+  OTHER = 'other'
 }
 
 export enum MaritalStatus {
-  SINGLE = 'SINGLE',
-  MARRIED = 'MARRIED',
-  DIVORCED = 'DIVORCED',
-  WIDOWED = 'WIDOWED'
+  SINGLE = 'single',
+  MARRIED = 'married',
+  DIVORCED = 'divorced',
+  WIDOWED = 'widowed'
 }
 
 export enum EmploymentStatus {
-  EMPLOYED = 'EMPLOYED',
-  UNEMPLOYED = 'UNEMPLOYED',
-  SELF_EMPLOYED = 'SELF_EMPLOYED',
-  STUDENT = 'STUDENT',
-  RETIRED = 'RETIRED'
+  EMPLOYED = 'employed',
+  UNEMPLOYED = 'unemployed',
+  SELF_EMPLOYED = 'self_employed',
+  STUDENT = 'student',
+  RETIRED = 'retired'
 }
 
 export enum RegistrationStatus {

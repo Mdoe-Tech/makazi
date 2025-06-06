@@ -19,7 +19,7 @@ interface NidaState {
   setSelectedNida: (nida: NidaData | null) => void;
   fetchNidaData: () => Promise<void>;
   fetchNidaById: (id: string) => Promise<void>;
-  registerNida: (data: Omit<NidaData, 'nida_number'>, citizenId: string) => Promise<void>;
+  registerNida: (data: Omit<NidaData, 'nida_number'>) => Promise<void>;
   verifyNida: (data: VerifyNidaDto) => Promise<void>;
   fetchVerificationHistory: (id: string) => Promise<void>;
   reset: () => void;
@@ -55,8 +55,8 @@ export const useNidaStore = create<NidaState>()(
             const { filters, pagination } = get();
             const response = await nidaService.getNidaData({ ...filters, ...pagination });
             set({ 
-              nidaData: response.data.data,
-              total: response.data.total,
+              nidaData: response.data,
+              total: response.total,
               loading: false 
             });
           } catch (error) {
@@ -72,7 +72,7 @@ export const useNidaStore = create<NidaState>()(
             set({ loading: true, error: null });
             const response = await nidaService.getNidaDataById(id);
             set({ 
-              selectedNida: response.data.data,
+              selectedNida: response.data,
               loading: false 
             });
           } catch (error) {
@@ -83,10 +83,10 @@ export const useNidaStore = create<NidaState>()(
           }
         },
 
-        registerNida: async (data, citizenId) => {
+        registerNida: async (data) => {
           try {
             set({ loading: true, error: null });
-            await nidaService.registerNida(data, citizenId);
+            await nidaService.registerNida(data);
             await get().fetchNidaData();
           } catch (error) {
             set({ 
@@ -117,7 +117,7 @@ export const useNidaStore = create<NidaState>()(
             set({ loading: true, error: null });
             const response = await nidaService.getNidaVerificationHistory(id);
             set({ 
-              verificationHistory: response.data.data,
+              verificationHistory: response.data,
               loading: false 
             });
           } catch (error) {

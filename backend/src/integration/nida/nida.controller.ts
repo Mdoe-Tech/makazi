@@ -17,21 +17,57 @@ export class NidaController {
   @Post('register')
   @Roles(Role.OFFICE_ADMIN)
   async registerCitizen(@Body() citizenData: any) {
-    this.loggingService.log('Registering new citizen in NIDA system');
+    this.loggingService.log(
+      'Registering new citizen in NIDA system',
+      'NIDA',
+      {
+        action: 'register',
+        citizenData: {
+          first_name: citizenData.first_name,
+          last_name: citizenData.last_name,
+          date_of_birth: citizenData.date_of_birth,
+          gender: citizenData.gender,
+          nationality: citizenData.nationality
+        }
+      }
+    );
     return this.nidaService.registerCitizen(citizenData);
   }
 
   @Get(':nidaNumber')
   @Roles(Role.OFFICE_ADMIN, Role.VERIFIER)
   async getCitizenData(@Param('nidaNumber') nidaNumber: string) {
-    this.loggingService.log(`Fetching NIDA data for number: ${nidaNumber}`);
+    this.loggingService.log(
+      `Fetching NIDA data for number: ${nidaNumber}`,
+      'NIDA',
+      {
+        action: 'getCitizenData',
+        nidaNumber,
+        roles: [Role.OFFICE_ADMIN, Role.VERIFIER]
+      }
+    );
     return this.nidaService.getCitizenData(nidaNumber);
   }
 
   @Post('verify')
   @Roles(Role.OFFICE_ADMIN, Role.VERIFIER)
   async verifyCitizen(@Body() verificationData: { nidaNumber: string; citizenData: any }) {
-    this.loggingService.log(`Verifying NIDA data for number: ${verificationData.nidaNumber}`);
+    this.loggingService.log(
+      `Verifying NIDA data for number: ${verificationData.nidaNumber}`,
+      'NIDA',
+      {
+        action: 'verifyCitizen',
+        nidaNumber: verificationData.nidaNumber,
+        citizenData: {
+          first_name: verificationData.citizenData.first_name,
+          last_name: verificationData.citizenData.last_name,
+          date_of_birth: verificationData.citizenData.date_of_birth,
+          gender: verificationData.citizenData.gender,
+          nationality: verificationData.citizenData.nationality
+        },
+        roles: [Role.OFFICE_ADMIN, Role.VERIFIER]
+      }
+    );
     return this.nidaService.verifyCitizen(verificationData.nidaNumber, verificationData.citizenData);
   }
 } 

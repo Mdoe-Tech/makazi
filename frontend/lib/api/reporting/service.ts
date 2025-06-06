@@ -1,90 +1,50 @@
-import { apiClient } from '../client';
-import { ApiResponse, PaginatedResponse, PaginationParams } from '../types';
-import {
-  Report,
-  CreateReportDto,
-  ReportFilters,
-  ReportTemplate,
-  ReportSchedule
-} from './types';
+import { apiClientInstance } from '../client';
+import type { PaginatedResponse, PaginationParams } from '../types';
+import type { Report, ReportFilters, CreateReportDto, UpdateReportDto } from './types';
 
-export class ReportingService {
-  private static instance: ReportingService;
-  private readonly baseUrl = '/reports';
-
-  private constructor() {}
-
-  public static getInstance(): ReportingService {
-    if (!ReportingService.instance) {
-      ReportingService.instance = new ReportingService();
-    }
-    return ReportingService.instance;
-  }
+class ReportingService {
+  private readonly baseUrl = '/reporting';
 
   async getReports(params: PaginationParams & ReportFilters): Promise<PaginatedResponse<Report>> {
-    return apiClient.get<PaginatedResponse<Report>>(this.baseUrl, { params });
+    return apiClientInstance.get<PaginatedResponse<Report>>(this.baseUrl, { params });
   }
 
-  async getReportById(id: string): Promise<ApiResponse<Report>> {
-    return apiClient.get<ApiResponse<Report>>(`${this.baseUrl}/${id}`);
+  async getReportById(id: string): Promise<{ data: Report }> {
+    return apiClientInstance.get<{ data: Report }>(`${this.baseUrl}/${id}`);
   }
 
-  async createReport(data: CreateReportDto): Promise<ApiResponse<Report>> {
-    return apiClient.post<ApiResponse<Report>>(this.baseUrl, data);
+  async createReport(data: CreateReportDto): Promise<{ data: Report }> {
+    return apiClientInstance.post<{ data: Report }>(this.baseUrl, data);
   }
 
-  async downloadReport(id: string): Promise<Blob> {
-    const response = await apiClient.get<Blob>(`${this.baseUrl}/${id}/download`, {
+  async updateReport(id: string, data: UpdateReportDto): Promise<{ data: Report }> {
+    return apiClientInstance.patch<{ data: Report }>(`${this.baseUrl}/${id}`, data);
+  }
+
+  async deleteReport(id: string): Promise<void> {
+    return apiClientInstance.delete(`${this.baseUrl}/${id}`);
+  }
+
+  async generateReport(id: string): Promise<Blob> {
+    const response = await apiClientInstance.get(`${this.baseUrl}/${id}/generate`, {
       responseType: 'blob'
     });
-    return response;
+    return response as unknown as Blob;
   }
 
-  async getReportTemplates(): Promise<ApiResponse<ReportTemplate[]>> {
-    return apiClient.get<ApiResponse<ReportTemplate[]>>(`${this.baseUrl}/templates`);
-  }
-
-  async createReportTemplate(template: Omit<ReportTemplate, 'id'>): Promise<ApiResponse<ReportTemplate>> {
-    return apiClient.post<ApiResponse<ReportTemplate>>(`${this.baseUrl}/templates`, template);
-  }
-
-  async updateReportTemplate(id: string, template: Partial<ReportTemplate>): Promise<ApiResponse<ReportTemplate>> {
-    return apiClient.patch<ApiResponse<ReportTemplate>>(`${this.baseUrl}/templates/${id}`, template);
-  }
-
-  async deleteReportTemplate(id: string): Promise<ApiResponse<void>> {
-    return apiClient.delete<ApiResponse<void>>(`${this.baseUrl}/templates/${id}`);
-  }
-
-  async getReportSchedules(): Promise<ApiResponse<ReportSchedule[]>> {
-    return apiClient.get<ApiResponse<ReportSchedule[]>>(`${this.baseUrl}/schedules`);
-  }
-
-  async createReportSchedule(schedule: Omit<ReportSchedule, 'id'>): Promise<ApiResponse<ReportSchedule>> {
-    return apiClient.post<ApiResponse<ReportSchedule>>(`${this.baseUrl}/schedules`, schedule);
-  }
-
-  async updateReportSchedule(id: string, schedule: Partial<ReportSchedule>): Promise<ApiResponse<ReportSchedule>> {
-    return apiClient.patch<ApiResponse<ReportSchedule>>(`${this.baseUrl}/schedules/${id}`, schedule);
-  }
-
-  async deleteReportSchedule(id: string): Promise<ApiResponse<void>> {
-    return apiClient.delete<ApiResponse<void>>(`${this.baseUrl}/schedules/${id}`);
-  }
-
-  async getReportStats(): Promise<ApiResponse<{
+  async getReportStats(): Promise<{
     total_reports: number;
     reports_by_type: Record<string, number>;
     reports_by_status: Record<string, number>;
-    average_generation_time: number;
-  }>> {
-    return apiClient.get<ApiResponse<{
+    generation_success_rate: number;
+  }> {
+    return apiClientInstance.get<{
       total_reports: number;
       reports_by_type: Record<string, number>;
       reports_by_status: Record<string, number>;
-      average_generation_time: number;
-    }>>(`${this.baseUrl}/stats`);
+      generation_success_rate: number;
+    }>(`${this.baseUrl}/stats`);
   }
 }
 
-export const reportingService = ReportingService.getInstance(); 
+export const reportingService = new ReportingService(); 

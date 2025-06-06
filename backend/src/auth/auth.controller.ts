@@ -1,24 +1,52 @@
-import { Controller, Post, UseGuards, Request, Get, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, UseGuards, Request, Get, UnauthorizedException, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LoggingService } from '../logging/logging.service';
 import * as swMessages from '../i18n/sw/sw.json';
+import { JwtService } from '@nestjs/jwt';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
-    private loggingService: LoggingService
+    private loggingService: LoggingService,
+    private jwtService: JwtService
   ) {}
 
-  @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Request() req) {
-    this.loggingService.log(`Login attempt for user ${req.user.username}`);
-    const result = await this.authService.login(req.user);
-    this.loggingService.log(`User ${req.user.username} logged in successfully`);
-    return result;
+  async login(@Body() loginDto: LoginDto) {
+    const { nida_number, password } = loginDto;
+
+    // Validate citizen credentials
+    const validationResult = await this.authService.validateCitizen(nida_number, password);
+
+    // If citizen needs to set up password
+    if (validationResult.needsPasswordSetup) {
+      return {
+        status: 'success',
+        data: {
+          needsPasswordSetup: true,
+          citizen: validationResult.citizen
+        }
+      };
+    }
+
+    // Generate JWT token for regular login
+    const payload = { 
+      sub: validationResult.citizen.id,
+      nida_number: validationResult.citizen.nida_number,
+      role: 'CITIZEN'
+    };
+
+    return {
+      status: 'success',
+      data: {
+        access_token: this.jwtService.sign(payload),
+        citizen: validationResult.citizen
+      }
+    };
   }
 
   @UseGuards(JwtAuthGuard)

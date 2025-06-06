@@ -27,11 +27,16 @@ export interface Report extends BaseEntity {
 }
 
 export interface CreateReportDto {
-  type: ReportType;
-  name: string;
-  description: string;
+  title: string;
+  type: string;
   parameters: Record<string, any>;
-  format: ReportFormat;
+}
+
+export interface UpdateReportDto {
+  title?: string;
+  type?: string;
+  parameters?: Record<string, any>;
+  status?: string;
 }
 
 export interface ReportFilters {

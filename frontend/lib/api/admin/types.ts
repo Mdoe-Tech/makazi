@@ -4,8 +4,10 @@ import { User } from '../auth/types';
 export enum AdminRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN = 'ADMIN',
-  MANAGER = 'MANAGER',
-  VIEWER = 'VIEWER'
+  VERIFIER = 'VERIFIER',
+  VIEWER = 'VIEWER',
+  REGISTRAR = 'REGISTRAR',
+  APPROVER = 'APPROVER'
 }
 
 export interface Admin extends BaseEntity {
@@ -60,8 +62,18 @@ export interface CreateUserDto {
   username: string;
   email: string;
   password: string;
+  first_name: string;
+  last_name: string;
+  phone_number?: string;
   role: string;
-  permissions: string[];
+  is_active: boolean;
+  permissions: {
+    can_manage_users: boolean;
+    can_manage_roles: boolean;
+    can_view_audit_logs: boolean;
+    can_manage_settings: boolean;
+  };
+  metadata?: Record<string, any>;
 }
 
 export interface UpdateUserDto {

@@ -1,28 +1,28 @@
-import { apiClient } from '../client';
+import { apiClientInstance } from '../client';
 import type { NidaData, NidaFilters, VerifyNidaDto, NidaVerificationResult } from './types';
-import { PaginationParams, ApiResponse } from '../types';
+import type { PaginationParams, PaginatedResponse } from '../types';
 
 class NidaService {
   private baseUrl = '/nida';
 
-  async getNidaData(params: PaginationParams & NidaFilters): Promise<ApiResponse<{ data: NidaData[]; total: number }>> {
-    return apiClient.get<ApiResponse<{ data: NidaData[]; total: number }>>(this.baseUrl, { params });
+  async getNidaData(params: PaginationParams & NidaFilters): Promise<PaginatedResponse<NidaData>> {
+    return apiClientInstance.get<PaginatedResponse<NidaData>>(this.baseUrl, { params });
   }
 
-  async getNidaDataById(id: string): Promise<ApiResponse<{ data: NidaData }>> {
-    return apiClient.get<ApiResponse<{ data: NidaData }>>(`${this.baseUrl}/${id}`);
+  async getNidaDataById(id: string): Promise<{ data: NidaData }> {
+    return apiClientInstance.get<{ data: NidaData }>(`${this.baseUrl}/${id}`);
   }
 
-  async registerNida(data: Omit<NidaData, 'nida_number'>, citizenId: string): Promise<ApiResponse<{ data: NidaData }>> {
-    return apiClient.post<ApiResponse<{ data: NidaData }>>(`${this.baseUrl}/register`, { ...data, citizen_id: citizenId });
+  async registerNida(data: Omit<NidaData, 'nida_number'>): Promise<{ data: NidaData }> {
+    return apiClientInstance.post<{ data: NidaData }>(`${this.baseUrl}/register`, data);
   }
 
-  async verifyNida(data: VerifyNidaDto): Promise<ApiResponse<{ data: NidaVerificationResult }>> {
-    return apiClient.post<ApiResponse<{ data: NidaVerificationResult }>>(`${this.baseUrl}/verify`, data);
+  async verifyNida(data: VerifyNidaDto): Promise<{ data: NidaVerificationResult }> {
+    return apiClientInstance.post<{ data: NidaVerificationResult }>(`${this.baseUrl}/verify`, data);
   }
 
-  async getNidaVerificationHistory(id: string): Promise<ApiResponse<{ data: NidaVerificationResult[] }>> {
-    return apiClient.get<ApiResponse<{ data: NidaVerificationResult[] }>>(`${this.baseUrl}/${id}/verification-history`);
+  async getNidaVerificationHistory(id: string): Promise<{ data: NidaVerificationResult[] }> {
+    return apiClientInstance.get<{ data: NidaVerificationResult[] }>(`${this.baseUrl}/${id}/verification-history`);
   }
 }
 

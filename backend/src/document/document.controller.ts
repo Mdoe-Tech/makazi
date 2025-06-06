@@ -26,7 +26,26 @@ export class DocumentController {
     @Body() createDocumentDto: CreateDocumentDto,
     @UploadedFile() file: Express.Multer.File
   ) {
-    this.loggingService.log(`Uploading document for citizen ${citizenId}`);
+    this.loggingService.log(
+      `Uploading document for citizen ${citizenId}`,
+      'Document',
+      {
+        action: 'create',
+        citizenId,
+        documentData: {
+          document_type: createDocumentDto.document_type,
+          document_number: createDocumentDto.document_number,
+          issue_date: createDocumentDto.issue_date,
+          expiry_date: createDocumentDto.expiry_date,
+          issuing_authority: createDocumentDto.issuing_authority,
+          file_info: file ? {
+            originalname: file.originalname,
+            mimetype: file.mimetype,
+            size: file.size
+          } : null
+        }
+      }
+    );
     return this.documentService.create(citizenId, createDocumentDto, file);
   }
 
@@ -47,7 +66,15 @@ export class DocumentController {
   @Get('citizen/:id')
   @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER)
   async findByCitizenId(@Param('id') citizenId: number) {
-    this.loggingService.log(`Fetching documents for citizen ${citizenId}`);
+    this.loggingService.log(
+      `Fetching documents for citizen ${citizenId}`,
+      'Document',
+      {
+        action: 'findByCitizenId',
+        citizenId,
+        roles: [Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER]
+      }
+    );
     return this.documentService.findByCitizenId(citizenId.toString());
   }
 

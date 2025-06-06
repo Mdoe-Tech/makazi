@@ -1,68 +1,43 @@
-import { apiClient } from '../client';
-import { ApiResponse, PaginatedResponse, PaginationParams } from '../types';
-import {
-  Citizen,
-  CreateCitizenDto,
-  UpdateCitizenDto,
-  CitizenFilters
-} from './types';
+import { apiClientInstance } from '../client';
+import type { PaginatedResponse, PaginationParams } from '../types';
+import type { Citizen, CitizenFilters, CreateCitizenDto, UpdateCitizenDto } from './types';
 
-export class CitizenService {
-  private static instance: CitizenService;
-  private readonly baseUrl = '/citizens';
+class CitizenService {
+  private readonly baseUrl = '/citizen';
 
-  private constructor() {}
-
-  public static getInstance(): CitizenService {
-    if (!CitizenService.instance) {
-      CitizenService.instance = new CitizenService();
-    }
-    return CitizenService.instance;
+  async getCitizens(params: PaginationParams & CitizenFilters): Promise<PaginatedResponse<Citizen>> {
+    return apiClientInstance.get<PaginatedResponse<Citizen>>(this.baseUrl, { params });
   }
 
-  async getCitizens(
-    params: PaginationParams & CitizenFilters
-  ): Promise<PaginatedResponse<Citizen>> {
-    return apiClient.get<PaginatedResponse<Citizen>>(this.baseUrl, { params });
+  async getCitizenById(id: string): Promise<{ data: Citizen }> {
+    return apiClientInstance.get<{ data: Citizen }>(`${this.baseUrl}/${id}`);
   }
 
-  async getCitizenById(id: string): Promise<ApiResponse<Citizen>> {
-    return apiClient.get<ApiResponse<Citizen>>(`${this.baseUrl}/${id}`);
+  async createCitizen(data: CreateCitizenDto): Promise<{ data: Citizen }> {
+    return apiClientInstance.post<{ data: Citizen }>(this.baseUrl, data);
   }
 
-  async createCitizen(data: CreateCitizenDto): Promise<ApiResponse<Citizen>> {
-    return apiClient.post<ApiResponse<Citizen>>(this.baseUrl, data);
+  async updateCitizen(id: string, data: UpdateCitizenDto): Promise<{ data: Citizen }> {
+    return apiClientInstance.patch<{ data: Citizen }>(`${this.baseUrl}/${id}`, data);
   }
 
-  async updateCitizen(
-    id: string,
-    data: UpdateCitizenDto
-  ): Promise<ApiResponse<Citizen>> {
-    return apiClient.patch<ApiResponse<Citizen>>(`${this.baseUrl}/${id}`, data);
+  async deleteCitizen(id: string): Promise<void> {
+    return apiClientInstance.delete(`${this.baseUrl}/${id}`);
   }
 
-  async deleteCitizen(id: string): Promise<ApiResponse<void>> {
-    return apiClient.delete<ApiResponse<void>>(`${this.baseUrl}/${id}`);
+  async verifyCitizen(id: string): Promise<{ data: Citizen }> {
+    return apiClientInstance.post<{ data: Citizen }>(`${this.baseUrl}/${id}/verify`);
   }
 
-  async verifyCitizen(id: string): Promise<ApiResponse<Citizen>> {
-    return apiClient.post<ApiResponse<Citizen>>(`${this.baseUrl}/${id}/verify`);
-  }
-
-  async rejectCitizen(
-    id: string,
-    reason: string
-  ): Promise<ApiResponse<Citizen>> {
-    return apiClient.post<ApiResponse<Citizen>>(`${this.baseUrl}/${id}/reject`, {
-      reason,
-    });
+  async rejectCitizen(id: string, reason: string): Promise<{ data: Citizen }> {
+    return apiClientInstance.post<{ data: Citizen }>(`${this.baseUrl}/${id}/reject`, { reason });
   }
 
   async uploadBiometricData(
     id: string,
     biometricData: FormData
-  ): Promise<ApiResponse<Citizen>> {
-    return apiClient.post<ApiResponse<Citizen>>(
+  ): Promise<{ data: Citizen }> {
+    return apiClientInstance.post<{ data: Citizen }>(
       `${this.baseUrl}/${id}/biometric`,
       biometricData,
       {
@@ -76,8 +51,8 @@ export class CitizenService {
   async uploadDocument(
     id: string,
     documentData: FormData
-  ): Promise<ApiResponse<Citizen>> {
-    return apiClient.post<ApiResponse<Citizen>>(
+  ): Promise<{ data: Citizen }> {
+    return apiClientInstance.post<{ data: Citizen }>(
       `${this.baseUrl}/${id}/documents`,
       documentData,
       {
@@ -88,21 +63,57 @@ export class CitizenService {
     );
   }
 
-  async getCitizenDocuments(id: string): Promise<ApiResponse<any>> {
-    return apiClient.get<ApiResponse<any>>(`${this.baseUrl}/${id}/documents`);
+  async getCitizenDocuments(id: string): Promise<{ data: any }> {
+    return apiClientInstance.get<{ data: any }>(`${this.baseUrl}/${id}/documents`);
   }
 
-  async getCitizenBiometricData(id: string): Promise<ApiResponse<any>> {
-    return apiClient.get<ApiResponse<any>>(`${this.baseUrl}/${id}/biometric`);
+  async getCitizenBiometricData(id: string): Promise<{ data: any }> {
+    return apiClientInstance.get<{ data: any }>(`${this.baseUrl}/${id}/biometric`);
   }
 
   async getCitizenVerificationHistory(
     id: string
-  ): Promise<ApiResponse<any>> {
-    return apiClient.get<ApiResponse<any>>(
+  ): Promise<{ data: any }> {
+    return apiClientInstance.get<{ data: any }>(
       `${this.baseUrl}/${id}/verification-history`
     );
   }
 }
 
-export const citizenService = CitizenService.getInstance(); 
+export const citizenService = new CitizenService();
+
+export interface NidaVerificationResult {
+  exists: boolean;
+  hasPassword: boolean;
+  citizen?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    nida_number: string;
+  };
+}
+
+export async function verifyNida(nidaNumber: string): Promise<NidaVerificationResult> {
+  const response = await apiClientInstance.get<{ data: NidaVerificationResult }>(`/citizen/verify/${nidaNumber}`);
+  return response.data;
+}
+
+export async function createCitizen(data: any) {
+  return apiClientInstance.post('/citizen', data);
+}
+
+export async function updateCitizen(id: string, data: any) {
+  return apiClientInstance.put(`/citizen/${id}`, data);
+}
+
+export async function getCitizen(id: string) {
+  return apiClientInstance.get(`/citizen/${id}`);
+}
+
+export async function listCitizens(params?: any) {
+  return apiClientInstance.get('/citizen', { params });
+}
+
+export async function setCitizenPassword(nidaNumber: string, password: string) {
+  return apiClientInstance.post(`/citizen/${nidaNumber}/password`, { password });
+} 

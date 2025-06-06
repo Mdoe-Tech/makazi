@@ -1,55 +1,54 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminService } from './service';
+import type { User } from '../auth/types';
 import type {
-  CreateAdminDto,
-  UpdateAdminDto,
-  AdminFilters,
-  AdminLoginDto,
-  Admin
+  CreateUserDto,
+  UpdateUserDto,
+  UserFilters,
 } from './types';
 import { PaginationParams } from '../types';
 
-export const useAdmins = (params: PaginationParams & AdminFilters) => {
+export const useUsers = (params: PaginationParams & UserFilters) => {
   return useQuery({
-    queryKey: ['admins', params],
-    queryFn: () => adminService.getAdmins(params),
+    queryKey: ['users', params],
+    queryFn: () => adminService.getUsers(params),
   });
 };
 
-export const useAdmin = (id: string) => {
+export const useUser = (id: string) => {
   return useQuery({
-    queryKey: ['admin', id],
-    queryFn: () => adminService.getAdminById(id),
+    queryKey: ['user', id],
+    queryFn: () => adminService.getUserById(id),
     enabled: !!id,
   });
 };
 
-export const useCreateAdmin = () => {
+export const useCreateUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: CreateAdminDto) => adminService.createAdmin(data),
+    mutationFn: (data: CreateUserDto) => adminService.createUser(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admins'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
 };
 
-export const useUpdateAdmin = () => {
+export const useUpdateUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateAdminDto }) => adminService.updateAdmin(id, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateUserDto }) => adminService.updateUser(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admins'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
 };
 
-export const useDeleteAdmin = () => {
+export const useDeleteUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => adminService.deleteAdmin(id),
+    mutationFn: (id: string) => adminService.deleteUser(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admins'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
 }; 

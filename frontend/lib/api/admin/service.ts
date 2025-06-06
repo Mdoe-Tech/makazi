@@ -1,48 +1,38 @@
-import { apiClient } from '../client';
-import { ApiResponse, PaginatedResponse, PaginationParams } from '../types';
-import { User } from '../auth/types';
-import { CreateUserDto, UpdateUserDto, UserFilters } from './types';
+import { apiClientInstance } from '../client';
+import type { User } from '../auth/types';
+import type { UserFilters, CreateUserDto, UpdateUserDto } from './types';
+import type { PaginatedResponse, PaginationParams } from '../types';
 
-export class AdminService {
-  private static instance: AdminService;
+class AdminService {
   private readonly baseUrl = '/admin/users';
 
-  private constructor() {}
-
-  public static getInstance(): AdminService {
-    if (!AdminService.instance) {
-      AdminService.instance = new AdminService();
-    }
-    return AdminService.instance;
+  async getUsers(params: UserFilters & PaginationParams): Promise<PaginatedResponse<User>> {
+    return apiClientInstance.get<PaginatedResponse<User>>(this.baseUrl, { params });
   }
 
-  async getUsers(params: PaginationParams & UserFilters): Promise<PaginatedResponse<User>> {
-    return apiClient.get<PaginatedResponse<User>>(this.baseUrl, { params });
+  async getUserById(id: string): Promise<{ data: User }> {
+    return apiClientInstance.get<{ data: User }>(`${this.baseUrl}/${id}`);
   }
 
-  async getUserById(id: string): Promise<ApiResponse<User>> {
-    return apiClient.get<ApiResponse<User>>(`${this.baseUrl}/${id}`);
+  async createUser(data: CreateUserDto): Promise<{ data: User }> {
+    return apiClientInstance.post<{ data: User }>(this.baseUrl, data);
   }
 
-  async createUser(data: CreateUserDto): Promise<ApiResponse<User>> {
-    return apiClient.post<ApiResponse<User>>(this.baseUrl, data);
+  async updateUser(id: string, data: UpdateUserDto): Promise<{ data: User }> {
+    return apiClientInstance.patch<{ data: User }>(`${this.baseUrl}/${id}`, data);
   }
 
-  async updateUser(id: string, data: UpdateUserDto): Promise<ApiResponse<User>> {
-    return apiClient.patch<ApiResponse<User>>(`${this.baseUrl}/${id}`, data);
+  async deleteUser(id: string): Promise<void> {
+    return apiClientInstance.delete(`${this.baseUrl}/${id}`);
   }
 
-  async deleteUser(id: string): Promise<ApiResponse<void>> {
-    return apiClient.delete<ApiResponse<void>>(`${this.baseUrl}/${id}`);
+  async activateUser(id: string): Promise<{ data: User }> {
+    return apiClientInstance.post<{ data: User }>(`${this.baseUrl}/${id}/activate`);
   }
 
-  async activateUser(id: string): Promise<ApiResponse<User>> {
-    return apiClient.post<ApiResponse<User>>(`${this.baseUrl}/${id}/activate`);
-  }
-
-  async deactivateUser(id: string): Promise<ApiResponse<User>> {
-    return apiClient.post<ApiResponse<User>>(`${this.baseUrl}/${id}/deactivate`);
+  async deactivateUser(id: string): Promise<{ data: User }> {
+    return apiClientInstance.post<{ data: User }>(`${this.baseUrl}/${id}/deactivate`);
   }
 }
 
-export const adminService = AdminService.getInstance(); 
+export const adminService = new AdminService(); 

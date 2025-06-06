@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe, Request, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { CreateAdminDto, UpdateAdminDto } from './dto/create-admin.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -8,7 +8,7 @@ import { Role } from '../auth/enums/role.enum';
 import { LoggingService } from '../logging/logging.service';
 import { Public } from '../auth/decorators/public.decorator';
 
-@Controller('admin')
+@Controller('admin/users')
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
@@ -19,8 +19,18 @@ export class AdminController {
   @Post('first-admin')
   @UsePipes(new ValidationPipe({ transform: true }))
   async createFirstAdmin(@Body() createAdminDto: CreateAdminDto) {
-    this.loggingService.log('Creating first admin user');
-    return this.adminService.createFirstAdmin(createAdminDto);
+    this.loggingService.log(`Attempting to create first admin user with username: ${createAdminDto.username} and email: ${createAdminDto.email}`);
+    try {
+      const result = await this.adminService.createFirstAdmin(createAdminDto);
+      this.loggingService.log(`Successfully created first admin user with ID: ${result.id}`);
+      return result;
+    } catch (error) {
+      this.loggingService.error(
+        `Failed to create first admin user: ${error.message}`,
+        JSON.stringify(error, Object.getOwnPropertyNames(error))
+      );
+      throw error;
+    }
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -28,14 +38,53 @@ export class AdminController {
   @Roles(Role.SUPER_ADMIN)
   @UsePipes(new ValidationPipe({ transform: true }))
   async create(@Body() createAdminDto: CreateAdminDto) {
-    this.loggingService.log('Creating new admin user');
     try {
-      const result = await this.adminService.create(createAdminDto);
-      return result;
+      this.loggingService.log(
+        `Attempting to create new admin user`,
+        'AdminController',
+        {
+          username: createAdminDto.username,
+          email: createAdminDto.email,
+          role: createAdminDto.role,
+          permissions: createAdminDto.permissions,
+          is_active: createAdminDto.is_active
+        }
+      );
+
+      const admin = await this.adminService.create(createAdminDto);
+      
+      this.loggingService.log(
+        `Successfully created admin user`,
+        'AdminController',
+        {
+          userId: admin.id,
+          username: admin.username,
+          role: admin.role
+        }
+      );
+
+      return admin;
     } catch (error) {
-      this.loggingService.error('Failed to create admin:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
-      console.error('Full error:', error);
-      throw error;
+      this.loggingService.error(
+        `Failed to create admin user`,
+        error.stack,
+        'AdminController',
+        {
+          error: error.message,
+          requestData: createAdminDto,
+          validationErrors: error.response?.message
+        }
+      );
+
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException({
+        message: 'Failed to create admin user',
+        error: error.message,
+        details: error.stack
+      });
     }
   }
 

@@ -1,17 +1,14 @@
 import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { NidaService } from './nida.service';
-import { NidaData, NidaFilters, VerifyNidaDto } from './dto/nida.types';
+import { NidaData, NidaFilters, VerifyNidaDto } from './types';
 
 @Controller('nida')
 export class NidaController {
   constructor(private readonly nidaService: NidaService) {}
 
-  @Post('register/:citizenId')
-  async registerNida(
-    @Param('citizenId') citizenId: string,
-    @Body() data: Omit<NidaData, 'nida_number'>
-  ) {
-    return this.nidaService.registerNida(data, citizenId);
+  @Post('register')
+  async registerNida(@Body() data: Omit<NidaData, 'nida_number'>) {
+    return this.nidaService.registerNida(data);
   }
 
   @Get()

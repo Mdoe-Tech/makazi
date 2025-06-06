@@ -4,13 +4,15 @@ import { AdminService } from '../admin/admin.service';
 import { LoggingService } from '../logging/logging.service';
 import * as bcrypt from 'bcrypt';
 import * as swMessages from '../i18n/sw/sw.json';
+import { CitizenService } from '../citizen/citizen.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private adminService: AdminService,
     private jwtService: JwtService,
-    private loggingService: LoggingService
+    private loggingService: LoggingService,
+    private citizenService: CitizenService
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
@@ -95,5 +97,36 @@ export class AuthService {
     } catch (error) {
       throw new UnauthorizedException(swMessages.auth.invalid_token);
     }
+  }
+
+  async validateCitizen(nidaNumber: string, password: string) {
+    const citizen = await this.citizenService.findByNidaNumber(nidaNumber);
+    if (!citizen) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // If citizen doesn't have a password set yet, return special response
+    if (!citizen.has_password) {
+      return {
+        needsPasswordSetup: true,
+        citizen: {
+          id: citizen.id,
+          nida_number: citizen.nida_number,
+          first_name: citizen.first_name,
+          last_name: citizen.last_name
+        }
+      };
+    }
+
+    // If citizen has password, verify it
+    const isPasswordValid = await this.citizenService.verifyPassword(citizen, password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    return {
+      needsPasswordSetup: false,
+      citizen
+    };
   }
 } 

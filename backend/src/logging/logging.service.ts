@@ -5,23 +5,23 @@ import { CustomLogger } from '../common/logger/logger.service';
 export class LoggingService {
   constructor(private logger: CustomLogger) {}
 
-  log(message: string) {
-    this.logger.log(message);
+  log(message: string, context?: string, metadata?: any) {
+    this.logger.log(message, context, metadata);
   }
 
-  error(message: string, trace: string) {
-    this.logger.error(message, trace);
+  error(message: string, trace?: string, context?: string, metadata?: any) {
+    this.logger.error(message, trace, context, metadata);
   }
 
-  warn(message: string) {
-    this.logger.warn(message);
+  warn(message: string, context?: string, metadata?: any) {
+    this.logger.warn(message, context, metadata);
   }
 
-  debug(message: string) {
-    this.logger.debug(message);
+  debug(message: string, context?: string, metadata?: any) {
+    this.logger.debug(message, context, metadata);
   }
 
-  verbose(message: string) {
-    this.logger.verbose(message);
+  verbose(message: string, context?: string, metadata?: any) {
+    this.logger.verbose(message, context, metadata);
   }
 } 

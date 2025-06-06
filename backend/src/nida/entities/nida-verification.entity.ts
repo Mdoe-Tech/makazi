@@ -19,6 +19,9 @@ export class NidaVerification {
   date_of_birth: string;
 
   @Column()
+  gender: string;
+
+  @Column()
   is_valid: boolean;
 
   @Column('decimal', { precision: 5, scale: 2 })

@@ -1,10 +1,13 @@
-import { Entity, Column } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { BaseEntity } from '../../common/entities/base.entity';
 import { Gender, MaritalStatus, EmploymentStatus } from '../enums/citizen.enum';
 import { RegistrationStatus } from '../enums/registration-status.enum';
 
-@Entity()
+@Entity('citizen')
 export class Citizen extends BaseEntity {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
   @Column({ unique: true })
   nida_number: string;
 
@@ -20,22 +23,26 @@ export class Citizen extends BaseEntity {
   @Column({ nullable: true })
   middle_name: string;
 
-  @Column()
+  @Column({ type: 'date' })
   date_of_birth: Date;
 
-  @Column()
-  gender: string;
+  @Column({
+    type: 'enum',
+    enum: Gender,
+    default: Gender.MALE
+  })
+  gender: Gender;
 
-  @Column()
+  @Column({ default: 'Tanzania' })
   nationality: string;
 
   @Column({ nullable: true })
   email: string;
 
-  @Column({ nullable: true })
+  @Column()
   phone_number: string;
 
-  @Column({ type: 'jsonb' })
+  @Column('jsonb')
   address: {
     street: string;
     city: string;
@@ -105,13 +112,25 @@ export class Citizen extends BaseEntity {
   @Column({ type: 'jsonb', nullable: true })
   verification_data: any;
 
-  @Column({ unique: true })
+  @Column()
   birth_certificate_number: string;
+
+  @Column({ nullable: true })
+  password: string;
+
+  @Column({ default: false })
+  has_password: boolean;
 
   @Column({ type: 'jsonb', nullable: true })
   metadata: any;
 
   @Column({ type: 'jsonb', nullable: true })
   verification_status_history: any;
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
 } 
  

@@ -14,15 +14,19 @@ export class AdminService {
   ) {}
 
   async createFirstAdmin(createAdminDto: CreateAdminDto) {
+    this.loggingService.log('Checking if any admin exists');
     // Check if any admin exists
     const existingAdmin = await this.adminRepository.findAll();
     if (existingAdmin.length > 0) {
+      this.loggingService.warn('Attempted to create first admin when admin already exists');
       throw new ConflictException('An admin user already exists');
     }
 
+    this.loggingService.log('Hashing password for first admin');
     // Hash password before saving
     const hashedPassword = await bcrypt.hash(createAdminDto.password, 10);
 
+    this.loggingService.log('Creating first admin with SUPER_ADMIN role');
     // Create the first admin with SUPER_ADMIN role
     const admin = await this.adminRepository.create({
       ...createAdminDto,
@@ -30,6 +34,7 @@ export class AdminService {
       role: Role.SUPER_ADMIN
     });
 
+    this.loggingService.log(`First admin created successfully with ID: ${admin.id}`);
     return admin;
   }
 

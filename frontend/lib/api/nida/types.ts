@@ -1,5 +1,29 @@
 import { BaseEntity } from '../types';
 
+export enum Gender {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE'
+}
+
+export enum MaritalStatus {
+  SINGLE = 'SINGLE',
+  MARRIED = 'MARRIED',
+  WIDOWED = 'WIDOWED',
+  DIVORCED = 'DIVORCED'
+}
+
+export enum EmploymentStatus {
+  EMPLOYED = 'EMPLOYED',
+  SELF_EMPLOYED = 'SELF_EMPLOYED',
+  UNEMPLOYED = 'UNEMPLOYED'
+}
+
+export enum CitizenshipType {
+  BIRTH = 'BIRTH',
+  INHERITANCE = 'INHERITANCE',
+  NATURALIZATION = 'NATURALIZATION'
+}
+
 export interface NidaData extends BaseEntity {
   nida_number: string;
   first_name: string;
@@ -9,12 +33,12 @@ export interface NidaData extends BaseEntity {
   date_of_birth: string;
   birth_certificate_number?: string;
   phone_number?: string;
-  gender: 'M' | 'F';
-  marital_status: 'SINGLE' | 'MARRIED' | 'WIDOWED' | 'DIVORCED';
+  gender: Gender;
+  marital_status: MaritalStatus;
   occupation?: string;
   employer_name?: string;
   dossier_number?: string;
-  employment_status: 'SELF_EMPLOYED' | 'EMPLOYED' | 'UNEMPLOYED';
+  employment_status: EmploymentStatus;
   father_first_name?: string;
   father_middle_name?: string;
   father_last_name?: string;
@@ -25,7 +49,7 @@ export interface NidaData extends BaseEntity {
   mother_last_name?: string;
   mother_birth_country?: string;
   mother_date_of_birth?: string;
-  citizenship_type: 'BIRTH' | 'INHERITANCE' | 'NATURALIZATION';
+  citizenship_type: CitizenshipType;
   naturalization_certificate_number?: string;
   birth_country: string;
   birth_region: string;
@@ -66,7 +90,9 @@ export interface NidaData extends BaseEntity {
   official_use_district?: string;
   official_use_ward?: string;
   official_use_center_name?: string;
-  application_date?: string;
+  application_date: string;
+  created_at: string;
+  updated_at: string;
   registration_officer_name?: string;
   immigration_officer_name?: string;
   rita_rgo_officer_name?: string;
@@ -85,7 +111,7 @@ export interface NidaFilters {
   first_name?: string;
   last_name?: string;
   date_of_birth?: string;
-  gender?: 'M' | 'F';
+  gender?: Gender;
   nationality?: string;
   is_verified?: boolean;
 }

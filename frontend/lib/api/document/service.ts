@@ -1,108 +1,68 @@
-import { apiClient } from '../client';
-import { ApiResponse, PaginatedResponse, PaginationParams } from '../types';
-import {
-  Document,
-  CreateDocumentDto,
-  UpdateDocumentDto,
-  DocumentFilters
-} from './types';
+import { apiClientInstance } from '../client';
+import type { PaginatedResponse, PaginationParams } from '../types';
+import type { Document, DocumentFilters, CreateDocumentDto, UpdateDocumentDto } from './types';
 
-export class DocumentService {
-  private static instance: DocumentService;
-  private readonly baseUrl = '/documents';
+class DocumentService {
+  private readonly baseUrl = '/document';
 
-  private constructor() {}
-
-  public static getInstance(): DocumentService {
-    if (!DocumentService.instance) {
-      DocumentService.instance = new DocumentService();
-    }
-    return DocumentService.instance;
+  async getDocuments(params: PaginationParams & DocumentFilters): Promise<PaginatedResponse<Document>> {
+    return apiClientInstance.get<PaginatedResponse<Document>>(this.baseUrl, { params });
   }
 
-  async getDocuments(
-    params: PaginationParams & DocumentFilters
-  ): Promise<PaginatedResponse<Document>> {
-    return apiClient.get<PaginatedResponse<Document>>(this.baseUrl, { params });
+  async getDocumentById(id: string): Promise<{ data: Document }> {
+    return apiClientInstance.get<{ data: Document }>(`${this.baseUrl}/${id}`);
   }
 
-  async getDocumentById(id: string): Promise<ApiResponse<Document>> {
-    return apiClient.get<ApiResponse<Document>>(`${this.baseUrl}/${id}`);
+  async createDocument(data: CreateDocumentDto): Promise<{ data: Document }> {
+    return apiClientInstance.post<{ data: Document }>(this.baseUrl, data);
   }
 
-  async createDocument(data: CreateDocumentDto): Promise<ApiResponse<Document>> {
-    return apiClient.post<ApiResponse<Document>>(this.baseUrl, data);
+  async updateDocument(id: string, data: UpdateDocumentDto): Promise<{ data: Document }> {
+    return apiClientInstance.patch<{ data: Document }>(`${this.baseUrl}/${id}`, data);
   }
 
-  async updateDocument(
-    id: string,
-    data: UpdateDocumentDto
-  ): Promise<ApiResponse<Document>> {
-    return apiClient.patch<ApiResponse<Document>>(`${this.baseUrl}/${id}`, data);
+  async deleteDocument(id: string): Promise<void> {
+    return apiClientInstance.delete(`${this.baseUrl}/${id}`);
   }
 
-  async deleteDocument(id: string): Promise<ApiResponse<void>> {
-    return apiClient.delete<ApiResponse<void>>(`${this.baseUrl}/${id}`);
-  }
-
-  async uploadDocumentFile(
-    id: string,
-    file: File
-  ): Promise<ApiResponse<Document>> {
+  async uploadDocument(file: File): Promise<{ data: Document }> {
     const formData = new FormData();
     formData.append('file', file);
-
-    return apiClient.post<ApiResponse<Document>>(
-      `${this.baseUrl}/${id}/upload`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
-  }
-
-  async verifyDocument(
-    id: string,
-    verificationDetails: {
-      verified_by: string;
-      verification_notes: string;
-    }
-  ): Promise<ApiResponse<Document>> {
-    return apiClient.post<ApiResponse<Document>>(
-      `${this.baseUrl}/${id}/verify`,
-      verificationDetails
-    );
-  }
-
-  async rejectDocument(
-    id: string,
-    rejectionDetails: {
-      verified_by: string;
-      verification_notes: string;
-    }
-  ): Promise<ApiResponse<Document>> {
-    return apiClient.post<ApiResponse<Document>>(
-      `${this.baseUrl}/${id}/reject`,
-      rejectionDetails
-    );
-  }
-
-  async getDocumentByCitizenId(
-    citizenId: string
-  ): Promise<ApiResponse<Document[]>> {
-    return apiClient.get<ApiResponse<Document[]>>(
-      `${this.baseUrl}/citizen/${citizenId}`
-    );
+    return apiClientInstance.post<{ data: Document }>(`${this.baseUrl}/upload`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   }
 
   async downloadDocument(id: string): Promise<Blob> {
-    const response = await apiClient.get<Blob>(`${this.baseUrl}/${id}/download`, {
-      responseType: 'blob',
+    const response = await apiClientInstance.get(`${this.baseUrl}/${id}/download`, {
+      responseType: 'blob'
     });
-    return response;
+    return response as unknown as Blob;
+  }
+
+  async verifyDocument(id: string): Promise<{ data: Document }> {
+    return apiClientInstance.post<{ data: Document }>(`${this.baseUrl}/${id}/verify`);
+  }
+
+  async rejectDocument(id: string, reason: string): Promise<{ data: Document }> {
+    return apiClientInstance.post<{ data: Document }>(`${this.baseUrl}/${id}/reject`, { reason });
+  }
+
+  async getDocumentStats(): Promise<{
+    total_documents: number;
+    documents_by_type: Record<string, number>;
+    documents_by_status: Record<string, number>;
+    storage_usage: number;
+  }> {
+    return apiClientInstance.get<{
+      total_documents: number;
+      documents_by_type: Record<string, number>;
+      documents_by_status: Record<string, number>;
+      storage_usage: number;
+    }>(`${this.baseUrl}/stats`);
   }
 }
 
-export const documentService = DocumentService.getInstance(); 
+export const documentService = new DocumentService(); 

@@ -20,8 +20,8 @@ export interface ApiError {
 
 export interface BaseEntity {
   id: string;
-  created_at: Date;
-  updated_at: Date;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface PaginationParams {

@@ -12,6 +12,16 @@ async function bootstrap() {
     logger: new CustomLogger(configService),
   });
 
+  // Enable CORS
+  app.enableCors({
+    origin: ['http://localhost:3000','http://localhost:3001','http://localhost:30002','http://localhost:30003', 'http://localhost:5173'], // Add your frontend URLs
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    credentials: true,
+  });
+
+  // Set global prefix
+  app.setGlobalPrefix('api');
+
   app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalFilters(new HttpExceptionFilter());
 

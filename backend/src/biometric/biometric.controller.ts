@@ -25,28 +25,63 @@ export class BiometricController {
     @Param('id') citizenId: number,
     @Body() createBiometricDto: CreateBiometricDto
   ) {
-    this.loggingService.log(`Creating fingerprint data for citizen ${citizenId}`);
+    this.loggingService.log(
+      `Creating fingerprint data for citizen ${citizenId}`,
+      'Biometric',
+      {
+        action: 'create',
+        citizenId,
+        biometricData: {
+          quality_score: createBiometricDto.quality_score,
+          capture_device: createBiometricDto.capture_device,
+          has_fingerprint: !!createBiometricDto.fingerprint_data
+        }
+      }
+    );
     return this.biometricService.create(createBiometricDto);
   }
 
   @Get()
   @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER)
   async findAll() {
-    this.loggingService.log('Fetching all biometric records');
+    this.loggingService.log(
+      'Fetching all biometric records',
+      'Biometric',
+      {
+        action: 'findAll',
+        roles: [Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER]
+      }
+    );
     return this.biometricService.findAll();
   }
 
   @Get(':id')
   @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER)
   async findOne(@Param('id') id: number) {
-    this.loggingService.log(`Fetching biometric record ${id}`);
+    this.loggingService.log(
+      `Fetching biometric record ${id}`,
+      'Biometric',
+      {
+        action: 'findOne',
+        biometricId: id,
+        roles: [Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER]
+      }
+    );
     return this.biometricService.findOne(id.toString());
   }
 
   @Get('citizen/:id')
   @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER)
   async findByCitizenId(@Param('id') citizenId: number) {
-    this.loggingService.log(`Fetching fingerprint data for citizen ${citizenId}`);
+    this.loggingService.log(
+      `Fetching fingerprint data for citizen ${citizenId}`,
+      'Biometric',
+      {
+        action: 'findByCitizenId',
+        citizenId,
+        roles: [Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER]
+      }
+    );
     return this.biometricService.findByCitizenId(citizenId.toString());
   }
 

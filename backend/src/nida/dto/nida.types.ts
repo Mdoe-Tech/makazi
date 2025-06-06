@@ -5,6 +5,7 @@ export interface NidaData {
   last_name: string;
   other_names?: string;
   date_of_birth: string;
+  nationality: string;
   birth_certificate_number?: string;
   phone_number?: string;
   gender: 'M' | 'F';

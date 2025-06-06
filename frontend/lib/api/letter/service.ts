@@ -1,95 +1,44 @@
-import { apiClient } from '../client';
-import { ApiResponse, PaginatedResponse, PaginationParams } from '../types';
-import {
-  Letter,
-  CreateLetterDto,
-  LetterFilters,
-  LetterTemplate,
-  LetterSchedule
-} from './types';
+import { apiClientInstance } from '../client';
+import type { PaginatedResponse, PaginationParams } from '../types';
+import type { Letter, LetterFilters, CreateLetterDto, UpdateLetterDto } from './types';
 
-export class LetterService {
-  private static instance: LetterService;
-  private readonly baseUrl = '/letters';
-
-  private constructor() {}
-
-  public static getInstance(): LetterService {
-    if (!LetterService.instance) {
-      LetterService.instance = new LetterService();
-    }
-    return LetterService.instance;
-  }
+class LetterService {
+  private readonly baseUrl = '/letter';
 
   async getLetters(params: PaginationParams & LetterFilters): Promise<PaginatedResponse<Letter>> {
-    return apiClient.get<PaginatedResponse<Letter>>(this.baseUrl, { params });
+    return apiClientInstance.get<PaginatedResponse<Letter>>(this.baseUrl, { params });
   }
 
-  async getLetterById(id: string): Promise<ApiResponse<Letter>> {
-    return apiClient.get<ApiResponse<Letter>>(`${this.baseUrl}/${id}`);
+  async getLetterById(id: string): Promise<{ data: Letter }> {
+    return apiClientInstance.get<{ data: Letter }>(`${this.baseUrl}/${id}`);
   }
 
-  async createLetter(data: CreateLetterDto): Promise<ApiResponse<Letter>> {
-    return apiClient.post<ApiResponse<Letter>>(this.baseUrl, data);
+  async createLetter(data: CreateLetterDto): Promise<{ data: Letter }> {
+    return apiClientInstance.post<{ data: Letter }>(this.baseUrl, data);
   }
 
-  async updateLetter(id: string, data: Partial<CreateLetterDto>): Promise<ApiResponse<Letter>> {
-    return apiClient.patch<ApiResponse<Letter>>(`${this.baseUrl}/${id}`, data);
+  async updateLetter(id: string, data: UpdateLetterDto): Promise<{ data: Letter }> {
+    return apiClientInstance.patch<{ data: Letter }>(`${this.baseUrl}/${id}`, data);
   }
 
-  async deleteLetter(id: string): Promise<ApiResponse<void>> {
-    return apiClient.delete<ApiResponse<void>>(`${this.baseUrl}/${id}`);
+  async deleteLetter(id: string): Promise<void> {
+    return apiClientInstance.delete(`${this.baseUrl}/${id}`);
   }
 
-  async sendLetter(id: string): Promise<ApiResponse<Letter>> {
-    return apiClient.post<ApiResponse<Letter>>(`${this.baseUrl}/${id}/send`);
+  async approveLetter(id: string): Promise<{ data: Letter }> {
+    return apiClientInstance.post<{ data: Letter }>(`${this.baseUrl}/${id}/approve`);
   }
 
-  async getLetterTemplates(): Promise<ApiResponse<LetterTemplate[]>> {
-    return apiClient.get<ApiResponse<LetterTemplate[]>>(`${this.baseUrl}/templates`);
+  async rejectLetter(id: string, reason: string): Promise<{ data: Letter }> {
+    return apiClientInstance.post<{ data: Letter }>(`${this.baseUrl}/${id}/reject`, { reason });
   }
 
-  async createLetterTemplate(template: Omit<LetterTemplate, 'id'>): Promise<ApiResponse<LetterTemplate>> {
-    return apiClient.post<ApiResponse<LetterTemplate>>(`${this.baseUrl}/templates`, template);
-  }
-
-  async updateLetterTemplate(id: string, template: Partial<LetterTemplate>): Promise<ApiResponse<LetterTemplate>> {
-    return apiClient.patch<ApiResponse<LetterTemplate>>(`${this.baseUrl}/templates/${id}`, template);
-  }
-
-  async deleteLetterTemplate(id: string): Promise<ApiResponse<void>> {
-    return apiClient.delete<ApiResponse<void>>(`${this.baseUrl}/templates/${id}`);
-  }
-
-  async getLetterSchedules(): Promise<ApiResponse<LetterSchedule[]>> {
-    return apiClient.get<ApiResponse<LetterSchedule[]>>(`${this.baseUrl}/schedules`);
-  }
-
-  async createLetterSchedule(schedule: Omit<LetterSchedule, 'id'>): Promise<ApiResponse<LetterSchedule>> {
-    return apiClient.post<ApiResponse<LetterSchedule>>(`${this.baseUrl}/schedules`, schedule);
-  }
-
-  async updateLetterSchedule(id: string, schedule: Partial<LetterSchedule>): Promise<ApiResponse<LetterSchedule>> {
-    return apiClient.patch<ApiResponse<LetterSchedule>>(`${this.baseUrl}/schedules/${id}`, schedule);
-  }
-
-  async deleteLetterSchedule(id: string): Promise<ApiResponse<void>> {
-    return apiClient.delete<ApiResponse<void>>(`${this.baseUrl}/schedules/${id}`);
-  }
-
-  async getLetterStats(): Promise<ApiResponse<{
-    total_letters: number;
-    letters_by_type: Record<string, number>;
-    letters_by_status: Record<string, number>;
-    delivery_success_rate: number;
-  }>> {
-    return apiClient.get<ApiResponse<{
-      total_letters: number;
-      letters_by_type: Record<string, number>;
-      letters_by_status: Record<string, number>;
-      delivery_success_rate: number;
-    }>>(`${this.baseUrl}/stats`);
+  async generateLetter(id: string): Promise<Blob> {
+    const response = await apiClientInstance.get(`${this.baseUrl}/${id}/generate`, {
+      responseType: 'blob'
+    });
+    return response as unknown as Blob;
   }
 }
 
-export const letterService = LetterService.getInstance(); 
+export const letterService = new LetterService(); 
