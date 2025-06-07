@@ -26,7 +26,8 @@ export interface User extends BaseEntity {
 }
 
 export interface LoginDto {
-  nida_number: string;
+  nida_number?: string;
+  username?: string;
   password: string;
 }
 

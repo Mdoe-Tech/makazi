@@ -37,6 +37,16 @@ export class NidaRepository {
     const nida = this.nidaRepository.create({
       ...registerNidaDto,
       nida_number: nidaNumber,
+      date_of_birth: new Date(registerNidaDto.date_of_birth).toISOString(),
+      father_date_of_birth: registerNidaDto.father_date_of_birth ? new Date(registerNidaDto.father_date_of_birth).toISOString() : null,
+      mother_date_of_birth: registerNidaDto.mother_date_of_birth ? new Date(registerNidaDto.mother_date_of_birth).toISOString() : null,
+      application_date: new Date(registerNidaDto.application_date).toISOString(),
+      verification_date: registerNidaDto.verification_date ? new Date(registerNidaDto.verification_date).toISOString() : null,
+      registration_date: registerNidaDto.registration_date ? new Date(registerNidaDto.registration_date).toISOString() : new Date().toISOString(),
+      expiry_date: registerNidaDto.expiry_date ? new Date(registerNidaDto.expiry_date).toISOString() : null,
+      last_updated: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       biometric_data: JSON.stringify({
         status: 'PENDING',
         capture_date: null,
@@ -58,8 +68,31 @@ export class NidaRepository {
         city: registerNidaDto.current_residence_district,
         region: registerNidaDto.current_residence_region,
         postal_code: registerNidaDto.current_residence_postal_code
-      }
+      },
+      // Set default values for optional fields
+      email: registerNidaDto.email || null,
+      place_of_birth: registerNidaDto.place_of_birth || null,
+      mother_name: registerNidaDto.mother_name || null,
+      father_name: registerNidaDto.father_name || null,
+      blood_type: registerNidaDto.blood_type || null,
+      religion: registerNidaDto.religion || null,
+      education_level: registerNidaDto.education_level || null,
+      disability_status: registerNidaDto.disability_status || null,
+      disability_type: registerNidaDto.disability_type || null,
+      emergency_contact_name: registerNidaDto.emergency_contact_name || null,
+      emergency_contact_phone: registerNidaDto.emergency_contact_phone || null,
+      emergency_contact_relationship: registerNidaDto.emergency_contact_relationship || null,
+      photo_url: registerNidaDto.photo_url || null,
+      signature_url: registerNidaDto.signature_url || null,
+      fingerprint_url: registerNidaDto.fingerprint_url || null,
+      document_url: registerNidaDto.document_url || null,
+      verification_status: registerNidaDto.verification_status || null,
+      verification_notes: registerNidaDto.verification_notes || null,
+      last_updated_by: registerNidaDto.last_updated_by || null,
+      status: registerNidaDto.status || 'ACTIVE',
+      notes: registerNidaDto.notes || null
     });
+
     return this.nidaRepository.save(nida);
   }
 
@@ -81,22 +114,75 @@ export class NidaRepository {
   }
 
   async getNidaData(filters: NidaFilters): Promise<{ data: NidaData[]; total: number }> {
-    const { page = 1, limit = 10, ...whereFilters } = filters;
+    const { page = 1, limit = 10, date_of_birth, ...whereFilters } = filters;
     const skip = (page - 1) * limit;
 
     const [data, total] = await this.nidaRepository.findAndCount({
-      where: whereFilters,
+      where: {
+        ...whereFilters,
+        ...(date_of_birth && { date_of_birth: new Date(date_of_birth) })
+      },
       skip,
       take: limit,
       order: { created_at: 'DESC' }
     });
-    return { data, total };
+
+    // Convert all date fields to ISO strings for NidaData interface
+    const formattedData = data.map(item => {
+      const formatted = { ...item } as any;
+      
+      // Convert Date fields to ISO strings
+      if (formatted.date_of_birth) {
+        formatted.date_of_birth = formatted.date_of_birth.toISOString();
+      }
+      if (formatted.application_date) {
+        formatted.application_date = formatted.application_date.toISOString();
+      }
+      if (formatted.verification_date) {
+        formatted.verification_date = formatted.verification_date.toISOString();
+      }
+      if (formatted.registration_date) {
+        formatted.registration_date = formatted.registration_date.toISOString();
+      }
+      if (formatted.expiry_date) {
+        formatted.expiry_date = formatted.expiry_date.toISOString();
+      }
+      if (formatted.last_updated) {
+        formatted.last_updated = formatted.last_updated.toISOString();
+      }
+      if (formatted.created_at) {
+        formatted.created_at = formatted.created_at.toISOString();
+      }
+      if (formatted.updated_at) {
+        formatted.updated_at = formatted.updated_at.toISOString();
+      }
+
+      return formatted as NidaData;
+    });
+
+    return { data: formattedData, total };
   }
 
   async getNidaDataById(id: string): Promise<{ data: NidaData }> {
     const data = await this.nidaRepository.findOne({ where: { nida_number: id } });
-    console.log('NIDA Data from DB:', JSON.stringify(data, null, 2));
-    return { data };
+    if (!data) return { data: null };
+    
+    // Convert all date fields to ISO strings
+    const formatted = { ...data } as any;
+    
+    // Convert Date fields to ISO strings
+    if (formatted.date_of_birth) formatted.date_of_birth = formatted.date_of_birth.toISOString();
+    if (formatted.father_date_of_birth) formatted.father_date_of_birth = formatted.father_date_of_birth.toISOString();
+    if (formatted.mother_date_of_birth) formatted.mother_date_of_birth = formatted.mother_date_of_birth.toISOString();
+    if (formatted.application_date) formatted.application_date = formatted.application_date.toISOString();
+    if (formatted.verification_date) formatted.verification_date = formatted.verification_date.toISOString();
+    if (formatted.registration_date) formatted.registration_date = formatted.registration_date.toISOString();
+    if (formatted.expiry_date) formatted.expiry_date = formatted.expiry_date.toISOString();
+    if (formatted.last_updated) formatted.last_updated = formatted.last_updated.toISOString();
+    if (formatted.created_at) formatted.created_at = formatted.created_at.toISOString();
+    if (formatted.updated_at) formatted.updated_at = formatted.updated_at.toISOString();
+
+    return { data: formatted as NidaData };
   }
 
   async verifyNida(data: VerifyNidaDto): Promise<{ data: NidaVerificationResult }> {

@@ -1,8 +1,10 @@
-import { Entity, Column, PrimaryColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, CreateDateColumn, UpdateDateColumn, OneToMany, Index } from 'typeorm';
+import { NidaVerification } from './nida-verification.entity';
 
 @Entity('nida')
 export class Nida {
-  @PrimaryColumn({ unique: true })
+  @PrimaryColumn()
+  @Index({ unique: true })
   nida_number: string;
 
   @Column()
@@ -18,7 +20,7 @@ export class Nida {
   other_names: string;
 
   @Column()
-  date_of_birth: string;
+  date_of_birth: Date;
 
   @Column()
   nationality: string;
@@ -26,13 +28,13 @@ export class Nida {
   @Column({ nullable: true })
   biometric_data: string;
 
-  @Column()
+  @Column({ nullable: true })
   phone_number: string;
 
   @Column()
   gender: string;
 
-  @Column()
+  @Column({ nullable: true })
   marital_status: string;
 
   @Column({ nullable: true })
@@ -44,10 +46,10 @@ export class Nida {
   @Column({ nullable: true })
   dossier_number: string;
 
-  @Column()
+  @Column({ nullable: true })
   employment_status: string;
 
-  @Column()
+  @Column({ nullable: true })
   birth_certificate_number: string;
 
   @Column({ nullable: true })
@@ -80,13 +82,13 @@ export class Nida {
   @Column({ nullable: true })
   mother_date_of_birth: string;
 
-  @Column()
+  @Column({ nullable: true })
   citizenship_type: string;
 
   @Column({ nullable: true })
   naturalization_certificate_number: string;
 
-  @Column()
+  @Column({ nullable: true })
   birth_country: string;
 
   @Column()
@@ -247,9 +249,86 @@ export class Nida {
     postal_code: string;
   };
 
+  @Column({ nullable: true })
+  email: string;
+
+  @Column({ nullable: true })
+  place_of_birth: string;
+
+  @Column({ nullable: true })
+  mother_name: string;
+
+  @Column({ nullable: true })
+  father_name: string;
+
+  @Column({ nullable: true })
+  blood_type: string;
+
+  @Column({ nullable: true })
+  religion: string;
+
+  @Column({ nullable: true })
+  education_level: string;
+
+  @Column({ nullable: true })
+  disability_status: string;
+
+  @Column({ nullable: true })
+  disability_type: string;
+
+  @Column({ nullable: true })
+  emergency_contact_name: string;
+
+  @Column({ nullable: true })
+  emergency_contact_phone: string;
+
+  @Column({ nullable: true })
+  emergency_contact_relationship: string;
+
+  @Column({ nullable: true })
+  photo_url: string;
+
+  @Column({ nullable: true })
+  signature_url: string;
+
+  @Column({ nullable: true })
+  fingerprint_url: string;
+
+  @Column({ nullable: true })
+  document_url: string;
+
+  @Column({ nullable: true })
+  verification_status: string;
+
+  @Column({ nullable: true })
+  verification_notes: string;
+
+  @Column({ nullable: true })
+  registration_date: Date;
+
+  @Column({ nullable: true })
+  expiry_date: Date;
+
+  @Column({ nullable: true })
+  last_updated: Date;
+
+  @Column({ nullable: true })
+  last_updated_by: string;
+
+  @Column({ nullable: true })
+  status: string;
+
+  @Column({ nullable: true })
+  notes: string;
+
   @CreateDateColumn()
   created_at: Date;
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToMany(() => NidaVerification, verification => verification.nida, {
+    cascade: true
+  })
+  verifications: NidaVerification[];
 } 

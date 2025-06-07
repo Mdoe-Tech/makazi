@@ -33,7 +33,10 @@ export class NidaVerification {
   @CreateDateColumn()
   verification_date: Date;
 
-  @ManyToOne(() => Nida)
-  @JoinColumn({ name: 'nida_number', referencedColumnName: 'nida_number' })
+  @ManyToOne(() => Nida, { 
+    onDelete: 'CASCADE',
+    createForeignKeyConstraints: false
+  })
+  @JoinColumn({ name: 'nida_number' })
   nida: Nida;
 } 

@@ -6,6 +6,7 @@ import { LoggingService } from '../logging/logging.service';
 import * as swMessages from '../i18n/sw/sw.json';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
+import { AdminLoginDto } from './dto/admin-login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -17,36 +18,52 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
-    const { nida_number, password } = loginDto;
+    try {
+      const { nida_number, password } = loginDto;
+      const validationResult = await this.authService.validateCitizen(nida_number, password);
 
-    // Validate citizen credentials
-    const validationResult = await this.authService.validateCitizen(nida_number, password);
+      // If citizen needs to set up password
+      if (validationResult.needsPasswordSetup) {
+        return {
+          status: 'success',
+          data: {
+            needsPasswordSetup: true,
+            citizen: validationResult.citizen
+          }
+        };
+      }
 
-    // If citizen needs to set up password
-    if (validationResult.needsPasswordSetup) {
+      // Generate JWT token for regular login
+      const payload = { 
+        sub: validationResult.citizen.id,
+        nida_number: validationResult.citizen.nida_number,
+        role: 'CITIZEN'
+      };
+
       return {
         status: 'success',
         data: {
-          needsPasswordSetup: true,
+          access_token: this.jwtService.sign(payload),
           citizen: validationResult.citizen
         }
       };
+    } catch (error: any) {
+      throw new UnauthorizedException(error.message || 'Invalid credentials');
     }
+  }
 
-    // Generate JWT token for regular login
-    const payload = { 
-      sub: validationResult.citizen.id,
-      nida_number: validationResult.citizen.nida_number,
-      role: 'CITIZEN'
-    };
-
-    return {
-      status: 'success',
-      data: {
-        access_token: this.jwtService.sign(payload),
-        citizen: validationResult.citizen
-      }
-    };
+  @Post('admin/login')
+  async adminLogin(@Body() adminLoginDto: AdminLoginDto) {
+    try {
+      const admin = await this.authService.validateUser(adminLoginDto.username, adminLoginDto.password);
+      const result = await this.authService.login(admin);
+      return {
+        status: 'success',
+        data: result
+      };
+    } catch (error: any) {
+      throw new UnauthorizedException(error.message || 'Invalid credentials');
+    }
   }
 
   @UseGuards(JwtAuthGuard)

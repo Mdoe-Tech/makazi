@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/lib/store/auth.store';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { 
   Users, 
@@ -19,6 +21,20 @@ interface StatCard {
 }
 
 export default function AdminDashboard() {
+  const router = useRouter();
+  const { user, loading } = useAuthStore();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/admin/login');
+    }
+  }, [user, loading, router]);
+
   const [stats] = useState<StatCard[]>([
     {
       title: 'Total Citizens',
@@ -49,6 +65,18 @@ export default function AdminDashboard() {
       color: colors.accent.main
     }
   ]);
+
+  if (!isClient || loading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (user.role === 'CITIZEN') {
+    return null;
+  }
 
   return (
     <DashboardLayout userType="admin">

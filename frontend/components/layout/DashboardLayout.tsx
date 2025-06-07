@@ -38,7 +38,7 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-  const { user, loading, logout } = useAuthStore();
+  const { user, loading, logout, initialize, initialized } = useAuthStore();
 
   // Handle dark mode
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -51,10 +51,20 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
   };
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/citizen/login');
+    if (!initialized) {
+      initialize();
     }
-  }, [user, loading, router]);
+  }, [initialized, initialize]);
+
+  useEffect(() => {
+    if (initialized && !loading && !user && !pathname.includes('/login')) {
+      if (userType === 'admin') {
+        router.push('/admin/login');
+      } else {
+        router.push('/citizen/login');
+      }
+    }
+  }, [user, loading, router, pathname, userType, initialized]);
 
   useEffect(() => {
     setMounted(true);
@@ -75,7 +85,7 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
 
   const handleLogout = () => {
     logout();
-    router.push('/login');
+    router.push('/admin/login');
   };
 
   const getRoleBasedNavigation = (userRole: AdminRole) => {

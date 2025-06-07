@@ -66,7 +66,7 @@ export interface NidaData {
   official_use_district: string;
   official_use_ward: string;
   official_use_center_name: string;
-  application_date: Date;
+  application_date: string;
   registration_officer_name: string;
   immigration_officer_name: string;
   rita_rgo_officer_name: string;
@@ -76,10 +76,35 @@ export interface NidaData {
   primary_school_district: string;
   primary_school_graduation_year: string;
   is_verified: boolean;
-  verification_date?: Date;
+  verification_date?: string;
   metadata?: Record<string, any>;
-  created_at: Date;
-  updated_at: Date;
+  created_at: string;
+  updated_at: string;
+  // Additional fields from Nida entity
+  email?: string;
+  place_of_birth?: string;
+  mother_name?: string;
+  father_name?: string;
+  blood_type?: string;
+  religion?: string;
+  education_level?: string;
+  disability_status?: string;
+  disability_type?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  emergency_contact_relationship?: string;
+  photo_url?: string;
+  signature_url?: string;
+  fingerprint_url?: string;
+  document_url?: string;
+  verification_status?: string;
+  verification_notes?: string;
+  registration_date?: string;
+  expiry_date?: string;
+  last_updated?: string;
+  last_updated_by?: string;
+  status?: string;
+  notes?: string;
 }
 
 export interface NidaFilters {

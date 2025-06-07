@@ -87,14 +87,12 @@ export default function CitizenLoginPage() {
     } else {
       // Handle regular login
       try {
-        const response = await login(formData.nida_number, formData.password, 'citizen');
+        const response = await login({ nida_number: formData.nida_number, password: formData.password });
         if (response.data.data.needsPasswordSetup) {
           setStep('create-password');
           setFormError('Please set up your password first');
-        } else {
-          // Force a hard navigation to ensure state is fresh
-          window.location.href = '/citizen/dashboard';
         }
+        // Redirection is now handled in the auth store
       } catch (error: any) {
         console.error('Login error:', error);
         setFormError(error.response?.data?.message || error.message || 'Failed to login. Please try again.');

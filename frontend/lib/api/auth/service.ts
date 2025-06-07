@@ -26,8 +26,10 @@ export class AuthService {
   }
 
   async login(data: LoginDto): Promise<AuthResponse> {
-    const response = await apiClientInstance.post<AuthResponse>(`${this.baseUrl}/login`, data);
-    console.log('Auth service login response:', response); // Debug log
+    // Use different endpoints for admin and citizen login
+    const endpoint = 'username' in data ? '/auth/admin/login' : '/auth/login';
+    const response = await apiClientInstance.post<AuthResponse>(endpoint, data);
+    console.log('Login response:', response);
     return response;
   }
 

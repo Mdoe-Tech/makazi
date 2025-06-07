@@ -83,7 +83,8 @@ CREATE TABLE "nida" (
   "metadata" jsonb,
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
   "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
-  CONSTRAINT "PK_nida" PRIMARY KEY ("nida_number")
+  CONSTRAINT "PK_nida" PRIMARY KEY ("nida_number"),
+  CONSTRAINT "UQ_nida_number" UNIQUE ("nida_number")
 );
 
 -- Create nida_verifications table

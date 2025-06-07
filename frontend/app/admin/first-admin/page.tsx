@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
+import type { User, AuthResponse } from '@/lib/api/auth/types';
 
 export default function CreateFirstAdminPage() {
   const router = useRouter();
@@ -41,7 +42,9 @@ export default function CreateFirstAdminPage() {
           can_manage_settings: true
         }
       });
-      router.push('/login');
+
+      // Redirect to login page after successful registration
+      router.push('/admin/login');
     } catch (error) {
       console.error('Registration failed:', error);
     }

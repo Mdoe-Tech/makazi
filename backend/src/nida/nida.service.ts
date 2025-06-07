@@ -1,14 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { NidaRepository } from './nida.repository';
 import { NidaData, NidaFilters, VerifyNidaDto, NidaVerificationResult } from './types';
+import { Nida } from './entities/nida.entity';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class NidaService {
+  private readonly logger = new Logger(NidaService.name);
+
   constructor(private readonly nidaRepository: NidaRepository) {}
 
-  async registerNida(data: Omit<NidaData, 'nida_number'>): Promise<{ data: NidaData }> {
-    const nida = await this.nidaRepository.registerNida(data);
-    return { data: nida };
+  async registerNida(data: Omit<NidaData, 'nida_number'>) {
+    return this.nidaRepository.registerNida(data);
   }
 
   async getNidaData(filters: NidaFilters): Promise<{ data: NidaData[]; total: number }> {

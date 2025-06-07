@@ -1,39 +1,32 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter();
-  const { login, loading, error } = useAuthStore();
+  const { login, loading, error, user, initialized } = useAuthStore();
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
 
+  useEffect(() => {
+    if (initialized && user) {
+      router.push('/admin');
+    }
+  }, [user, initialized, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(formData);
-      // Redirect based on user role
-      const user = useAuthStore.getState().user;
-      console.log('Login response user:', user); // Debug log
-      
-      // Check for admin roles
-      const adminRoles = ['ADMIN', 'SUPER_ADMIN', 'REGIONAL_ADMIN', 'DISTRICT_ADMIN', 'WARD_ADMIN', 'OFFICE_ADMIN', 'REGISTRAR', 'VERIFIER', 'APPROVER', 'VIEWER'];
-      console.log('User role:', user?.role); // Debug log
-      console.log('Is admin?', user?.role && adminRoles.includes(user.role)); // Debug log
-      
-      if (user?.role && adminRoles.includes(user.role)) {
-        console.log('Redirecting to admin dashboard'); // Debug log
+      const response = await login({ username: formData.username, password: formData.password }, 'admin');
+      console.log('Login response:', response);
+      if (response?.data?.data?.access_token) {
         router.push('/admin');
-      } else {
-        console.log('Redirecting to citizen dashboard'); // Debug log
-        router.push('/citizen');
       }
     } catch (error) {
-      // Error is handled by the store
       console.error('Login failed:', error);
     }
   };
@@ -46,12 +39,16 @@ export default function LoginPage() {
     }));
   };
 
+  if (initialized && user) {
+    return null; // Prevent flash of login form
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
+            Admin Login
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

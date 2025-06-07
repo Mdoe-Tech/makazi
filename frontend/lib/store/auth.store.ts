@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 import { authService } from '../api/auth/service';
-import type { User, LoginDto, RegisterDto } from '../api/auth/types';
+import type { User, LoginDto, RegisterDto, AuthResponse } from '../api/auth/types';
 import { UserRole } from '../api/auth/types';
 
 interface AuthState {
@@ -9,11 +9,13 @@ interface AuthState {
   token: string | null;
   loading: boolean;
   error: string | null;
+  initialized: boolean;
   // Actions
-  login: (nidaNumber: string, password: string, role: string) => Promise<any>;
-  register: (data: RegisterDto) => Promise<void>;
+  login: (credentials: { username: string; password: string } | { nida_number: string; password: string }, role?: string) => Promise<any>;
+  register: (data: RegisterDto) => Promise<AuthResponse>;
   logout: () => void;
   reset: () => void;
+  initialize: () => void;
 }
 
 const initialState = {
@@ -21,59 +23,125 @@ const initialState = {
   token: null,
   loading: false,
   error: null,
+  initialized: false,
 };
 
 export const useAuthStore = create<AuthState>()(
   devtools(
     persist(
-      (set) => ({
+      (set, get) => ({
         ...initialState,
 
-        login: async (nidaNumber: string, password: string, role: string) => {
+        initialize: () => {
+          const token = localStorage.getItem('token');
+          if (token) {
+            // Decode token to get user info
+            try {
+              const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+              set({
+                token,
+                initialized: true,
+                user: {
+                  id: tokenPayload.sub,
+                  username: tokenPayload.username,
+                  email: tokenPayload.email || '',
+                  first_name: tokenPayload.first_name || '',
+                  last_name: tokenPayload.last_name || '',
+                  role: tokenPayload.role || UserRole.ADMIN,
+                  is_active: true,
+                  permissions: tokenPayload.permissions || [],
+                  created_at: tokenPayload.created_at || new Date().toISOString(),
+                  updated_at: tokenPayload.updated_at || new Date().toISOString()
+                }
+              });
+            } catch (error) {
+              console.error('Error initializing auth state:', error);
+              localStorage.removeItem('token');
+              set({ ...initialState, initialized: true });
+            }
+          } else {
+            set({ ...initialState, initialized: true });
+          }
+        },
+
+        login: async (credentials, role) => {
           try {
             set({ loading: true, error: null });
-            const response = await authService.login({ nida_number: nidaNumber, password });
+            const response = await authService.login(credentials);
             console.log('Login response:', response);
             
-            // Only set user and token if login was successful and no password setup is needed
-            if (!response.data.data.needsPasswordSetup) {
-              if (typeof window !== 'undefined' && response.data.data.access_token) {
-                localStorage.setItem('token', response.data.data.access_token);
-              }
+            if (response.data.data.access_token) {
+              const token = response.data.data.access_token;
+              localStorage.setItem('token', token);
+
+              // Decode JWT token to get role
+              const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+              console.log('Token payload:', tokenPayload);
 
               // Handle citizen login
-              if (response.data.data.citizen) {
+              if (tokenPayload.role === 'CITIZEN') {
+                const citizen = response.data.data.citizen;
+                if (!citizen) {
+                  throw new Error('Citizen data not found in response');
+                }
                 const userData = {
-                  id: response.data.data.citizen.id,
-                  username: response.data.data.citizen.nida_number,
-                  email: response.data.data.citizen.email || '',
-                  first_name: response.data.data.citizen.first_name,
-                  last_name: response.data.data.citizen.last_name,
+                  id: citizen.id,
+                  username: citizen.nida_number,
+                  email: citizen.email || '',
+                  first_name: citizen.first_name,
+                  last_name: citizen.last_name,
                   role: UserRole.USER,
-                  is_active: response.data.data.citizen.is_active,
+                  is_active: citizen.is_active,
                   permissions: [],
-                  created_at: response.data.data.citizen.created_at,
-                  updated_at: response.data.data.citizen.updated_at,
-                  phone_number: response.data.data.citizen.phone_number,
-                  employment_status: response.data.data.citizen.employment_status,
-                  employer_name: response.data.data.citizen.employer_name,
-                  occupation: response.data.data.citizen.occupation,
-                  registration_status: response.data.data.citizen.registration_status
+                  created_at: citizen.created_at,
+                  updated_at: citizen.updated_at,
+                  phone_number: citizen.phone_number,
+                  employment_status: citizen.employment_status,
+                  employer_name: citizen.employer_name,
+                  occupation: citizen.occupation,
+                  registration_status: citizen.registration_status
                 };
-                console.log('Setting user data:', userData);
+                console.log('Setting citizen data:', userData);
                 set({ 
                   user: userData,
-                  token: response.data.data.access_token,
-                  loading: false 
+                  token,
+                  loading: false,
+                  initialized: true
                 });
+                // Redirect to citizen dashboard
+                if (typeof window !== 'undefined') {
+                  window.location.href = '/citizen/dashboard';
+                }
               } 
-              // Handle non-citizen login (admin, super_admin, etc)
-              else if (response.data.data.user) {
+              // Handle admin login (any role that's not CITIZEN)
+              else {
+                const adminUser = response.data.data.user;
+                if (!adminUser) {
+                  throw new Error('Admin user data not found in response');
+                }
+                const adminData: User = {
+                  id: adminUser.id,
+                  username: adminUser.username || tokenPayload.username || 'admin',
+                  email: adminUser.email || '',
+                  first_name: adminUser.first_name || '',
+                  last_name: adminUser.last_name || '',
+                  role: tokenPayload.role || UserRole.ADMIN,
+                  is_active: adminUser.is_active || true,
+                  permissions: adminUser.permissions || tokenPayload.permissions || [],
+                  created_at: adminUser.created_at || new Date().toISOString(),
+                  updated_at: adminUser.updated_at || new Date().toISOString()
+                };
+                console.log('Setting admin data:', adminData);
                 set({
-                  user: response.data.data.user,
-                  token: response.data.data.access_token,
-                  loading: false
+                  user: adminData,
+                  token,
+                  loading: false,
+                  initialized: true
                 });
+                // Redirect to admin dashboard
+                if (typeof window !== 'undefined') {
+                  window.location.href = '/admin';
+                }
               }
             }
             
@@ -82,7 +150,8 @@ export const useAuthStore = create<AuthState>()(
             console.error('Login error:', error);
             set({ 
               error: error instanceof Error ? error.message : 'Failed to login',
-              loading: false 
+              loading: false,
+              initialized: true
             });
             throw error;
           }
@@ -92,16 +161,15 @@ export const useAuthStore = create<AuthState>()(
           try {
             set({ loading: true, error: null });
             const response = await authService.register(data);
-            set({ 
-              user: response.data.data.user,
-              token: response.data.data.access_token,
-              loading: false 
-            });
+            set({ loading: false });
+            return response;
           } catch (error) {
             set({ 
               error: error instanceof Error ? error.message : 'Failed to register',
-              loading: false 
+              loading: false,
+              initialized: true
             });
+            throw error;
           }
         },
 
@@ -109,10 +177,10 @@ export const useAuthStore = create<AuthState>()(
           if (typeof window !== 'undefined') {
             localStorage.removeItem('token');
           }
-          set(initialState);
+          set({ ...initialState, initialized: true });
         },
 
-        reset: () => set(initialState),
+        reset: () => set({ ...initialState, initialized: true }),
       }),
       {
         name: 'auth-store',
@@ -120,6 +188,7 @@ export const useAuthStore = create<AuthState>()(
         partialize: (state) => ({
           user: state.user,
           token: state.token,
+          initialized: state.initialized
         }),
       }
     )
