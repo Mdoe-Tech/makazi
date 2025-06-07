@@ -18,7 +18,7 @@ export class DocumentTemplate {
   @Column('text')
   description: string;
 
-  @Column('simple-array')
+  @Column('text', { array: true })
   required_fields: string[];
 
   @Column()

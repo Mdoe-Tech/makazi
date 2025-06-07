@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
 import { CitizenModule } from './citizen/citizen.module';
 import { DocumentModule } from './document/document.module';
+import { DocumentsModule } from './documents/documents.module';
 import { BiometricModule } from './biometric/biometric.module';
 import { NotificationModule } from './notification/notification.module';
 import { AuditModule } from './audit/audit.module';
@@ -33,6 +34,7 @@ import { QueryLoggerSubscriber } from './common/subscribers/query-logger.subscri
     AdminModule,
     CitizenModule,
     DocumentModule,
+    DocumentsModule,
     BiometricModule,
     NotificationModule,
     AuditModule,
