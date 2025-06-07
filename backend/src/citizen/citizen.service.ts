@@ -300,14 +300,35 @@ export class CitizenService {
       `Verifying NIDA number in service: ${nidaNumber}`,
       'Citizen'
     );
+
+    // First verify if the NIDA number exists in the nida table
+    const nidaVerification = await this.nidaService.verifyNidaNumber(nidaNumber);
+    
+    if (!nidaVerification.is_valid) {
+      this.loggingService.log(
+        `Invalid NIDA number: ${nidaNumber}`,
+        'Citizen'
+      );
+      return {
+        exists: false,
+        hasPassword: false,
+        isValid: false,
+        message: 'Invalid NIDA number'
+      };
+    }
+
+    // Then check if a citizen with this NIDA number exists
     const citizen = await this.citizenRepository.findOne({ where: { nida_number: nidaNumber } });
+    
     this.loggingService.log(
       `NIDA verification result in service for ${nidaNumber}: exists=${!!citizen}, hasPassword=${citizen?.has_password || false}`,
       'Citizen'
     );
+
     return {
       exists: !!citizen,
       hasPassword: citizen?.has_password || false,
+      isValid: true,
       citizen: citizen ? {
         id: citizen.id,
         first_name: citizen.first_name,

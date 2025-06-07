@@ -20,7 +20,7 @@ interface NidaState {
   fetchNidaData: () => Promise<void>;
   fetchNidaById: (id: string) => Promise<void>;
   registerNida: (data: Omit<NidaData, 'nida_number'>) => Promise<void>;
-  verifyNida: (data: VerifyNidaDto) => Promise<void>;
+  verifyNida: (data: { nida_number: string; first_name: string; last_name: string; date_of_birth: string }) => Promise<{ data: NidaVerificationResult }>;
   fetchVerificationHistory: (id: string) => Promise<void>;
   reset: () => void;
 }
@@ -98,17 +98,20 @@ export const useNidaStore = create<NidaState>()(
 
         verifyNida: async (data) => {
           try {
-            set({ loading: true, error: null });
-            await nidaService.verifyNida(data);
-            await get().fetchNidaData();
-            if (get().selectedNida?.nida_number === data.nida_number) {
-              await get().fetchNidaById(data.nida_number);
-            }
+            return await nidaService.verifyNida(data);
           } catch (error) {
-            set({ 
-              error: error instanceof Error ? error.message : 'Failed to verify NIDA',
-              loading: false 
-            });
+            return {
+              data: {
+                is_valid: false,
+                match_score: 0,
+                verification_date: new Date().toISOString(),
+                details: {
+                  verified_fields: [],
+                  mismatches: [],
+                  reason: error instanceof Error ? error.message : 'Failed to verify NIDA'
+                }
+              }
+            };
           }
         },
 

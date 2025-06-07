@@ -25,8 +25,13 @@ export class Nida {
   @Column({ nullable: true })
   nationality: string;
 
-  @Column({ nullable: true })
-  biometric_data: string;
+  @Column('jsonb', { nullable: true })
+  biometric_data: {
+    fingerprint: string;
+    facial_image: string;
+    iris_scan: string;
+    quality_score: number;
+  };
 
   @Column({ nullable: true })
   phone_number: string;

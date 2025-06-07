@@ -14,11 +14,13 @@ class NidaService {
   }
 
   async registerNida(data: Omit<NidaData, 'nida_number'>): Promise<{ data: NidaData }> {
-    return apiClientInstance.post<{ data: NidaData }>(`${this.baseUrl}/register`, data);
+    const response = await apiClientInstance.post<{ data: NidaData }>(`${this.baseUrl}/register`, data);
+    return response.data;
   }
 
-  async verifyNida(data: VerifyNidaDto): Promise<{ data: NidaVerificationResult }> {
-    return apiClientInstance.post<{ data: NidaVerificationResult }>(`${this.baseUrl}/verify`, data);
+  async verifyNida(data: { nida_number: string; first_name: string; last_name: string; date_of_birth: string }): Promise<{ data: NidaVerificationResult }> {
+    const response = await apiClientInstance.post<{ data: NidaVerificationResult }>(`${this.baseUrl}/verify`, data);
+    return response.data;
   }
 
   async getNidaVerificationHistory(id: string): Promise<{ data: NidaVerificationResult[] }> {

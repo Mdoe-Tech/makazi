@@ -127,5 +127,9 @@ export interface NidaVerificationResult {
   is_valid: boolean;
   match_score: number;
   verification_date: string;
-  details?: Record<string, any>;
+  details: {
+    verified_fields: string[];
+    mismatches: string[];
+    reason?: string;
+  };
 } 

@@ -55,6 +55,19 @@ export interface NidaVerificationStatus {
   nida_verification_score?: number;
 }
 
+export interface NidaVerificationResult {
+  exists: boolean;
+  hasPassword: boolean;
+  isValid: boolean;
+  message?: string;
+  citizen?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    nida_number: string;
+  };
+}
+
 export interface Citizen extends BaseEntity {
   nida_number: string;
   first_name: string;

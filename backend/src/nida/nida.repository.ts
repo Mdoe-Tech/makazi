@@ -47,14 +47,12 @@ export class NidaRepository {
       last_updated: new Date().toISOString(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      biometric_data: JSON.stringify({
-        status: 'PENDING',
-        capture_date: null,
-        fingerprint_data: null,
-        facial_data: null,
-        iris_data: null,
-        signature_data: null
-      }),
+      biometric_data: {
+        fingerprint: null,
+        facial_image: null,
+        iris_scan: null,
+        quality_score: 0
+      },
       metadata: {
         registration_source: 'MANUAL',
         registration_type: 'NEW',
@@ -189,7 +187,12 @@ export class NidaRepository {
       if (date instanceof Date) {
         return date.toISOString().split('T')[0];
       }
-      return date.split('T')[0];
+      // Handle different date formats
+      const dateObj = new Date(date);
+      if (isNaN(dateObj.getTime())) {
+        return date.split('T')[0]; // If parsing fails, try to split on T
+      }
+      return dateObj.toISOString().split('T')[0];
     };
 
     const nidaDate = formatDate(nida.date_of_birth);
@@ -206,9 +209,6 @@ export class NidaRepository {
     if (nidaDate !== verifyDate) {
       mismatches.push('date_of_birth');
     }
-    if (nida.gender && data.gender && nida.gender.toLowerCase() !== data.gender.toLowerCase()) {
-      mismatches.push('gender');
-    }
 
     const is_valid = mismatches.length === 0;
     const match_score = is_valid ? 100 : 0;
@@ -219,11 +219,10 @@ export class NidaRepository {
       first_name: data.first_name,
       last_name: data.last_name,
       date_of_birth: data.date_of_birth,
-      gender: data.gender || nida.gender, // Use provided gender or fallback to stored gender
       is_valid,
       match_score,
       details: {
-        verified_fields: is_valid ? ['first_name', 'last_name', 'date_of_birth', 'gender'] : [],
+        verified_fields: is_valid ? ['first_name', 'last_name', 'date_of_birth'] : [],
         mismatches: mismatches
       }
     });

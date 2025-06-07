@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
 import { useCitizenStore } from '@/lib/store/citizen.store';
@@ -65,38 +65,46 @@ export default function CitizenRegistrationPage() {
   });
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [nidaVerifying, setNidaVerifying] = useState(false);
-  const [nidaVerified, setNidaVerified] = useState(false);
 
-  const verifyNidaNumber = async (nidaNumber: string) => {
-    if (!nidaNumber) return;
-    
-    setNidaVerifying(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setFormError(null);
-    
+    setSuccessMessage(null);
+
     try {
-      await verifyNida({ 
-        nida_number: nidaNumber,
+      // First verify NIDA
+      const nidaResponse = await verifyNida({ 
+        nida_number: formData.nida_number,
         first_name: formData.first_name,
         last_name: formData.last_name,
         date_of_birth: formData.date_of_birth
       });
-      setNidaVerified(true);
-      setFormError(null);
+
+      if (!nidaResponse.data.is_valid) {
+        setFormError(nidaResponse.data.details?.reason || 'Invalid NIDA number');
+        return;
+      }
+
+      // If NIDA is valid, proceed with registration
+      const submitData = {
+        ...formData,
+        date_of_birth: new Date(formData.date_of_birth + 'T00:00:00.000Z')
+      };
+      await createCitizen(submitData);
+      setSuccessMessage('Citizen registered successfully!');
+      router.push('/admin/citizens');
     } catch (error: any) {
-      setFormError(error.message || 'Failed to verify NIDA number. Please try again.');
-      setNidaVerified(false);
-    } finally {
-      setNidaVerifying(false);
+      setFormError(error.message || 'Failed to register citizen. Please try again.');
     }
   };
 
-  useEffect(() => {
-    // Verify NIDA number when component mounts
-    if (formData.nida_number) {
-      verifyNidaNumber(formData.nida_number);
-    }
-  }, []); // Empty dependency array means this runs once on mount
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   // Only REGISTRAR can access this page
   if (!user || (user.role as string) !== 'REGISTRAR') {
@@ -109,82 +117,6 @@ export default function CitizenRegistrationPage() {
       </DashboardLayout>
     );
   }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError(null);
-    setSuccessMessage(null);
-
-    if (!nidaVerified) {
-      setFormError('Please verify the NIDA number first');
-      return;
-    }
-
-    try {
-      const submitData = {
-        ...formData,
-        date_of_birth: new Date(formData.date_of_birth + 'T00:00:00.000Z')
-      };
-      await createCitizen(submitData);
-      setSuccessMessage('Citizen registered successfully!');
-      // Reset form after successful registration
-      setFormData({
-        nida_number: '17492258534876078',
-        first_name: 'John',
-        last_name: 'Mdoe',
-        middle_name: 'Peter',
-        date_of_birth: '1999-11-21',
-        gender: 'male' as Gender,
-        nationality: 'Tanzania',
-        email: '',
-        phone_number: '+255710647374',
-        address: {
-          street: 'Mikocheni Street',
-          city: 'Dar es Salaam',
-          region: 'Dar es Salaam',
-          postal_code: '41107'
-        },
-        other_names: '',
-        marital_status: MaritalStatus.SINGLE,
-        occupation: '',
-        employer_name: '',
-        employment_status: EmploymentStatus.UNEMPLOYED,
-        birth_certificate_number: 'cw200411'
-      });
-      setNidaVerified(false);
-    } catch (error: any) {
-      console.error('Registration failed:', error);
-      if (error.response?.data?.message) {
-        if (Array.isArray(error.response.data.message)) {
-          setFormError(error.response.data.message[0]);
-        } else {
-          setFormError(error.response.data.message);
-        }
-      } else if (error.response?.data?.error) {
-        setFormError(error.response.data.error);
-      } else if (error.message) {
-        setFormError(error.message);
-      } else {
-        setFormError('Failed to register citizen. Please try again.');
-      }
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-
-    // Verify NIDA number when it changes
-    if (name === 'nida_number') {
-      setNidaVerified(false);
-      if (value.length >= 10) { // Assuming NIDA numbers are at least 10 digits
-        verifyNidaNumber(value);
-      }
-    }
-  };
 
   return (
     <DashboardLayout userType="admin">
@@ -218,33 +150,11 @@ export default function CitizenRegistrationPage() {
                         name="nida_number"
                         id="nida_number"
                         required
-                        className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
-                          nidaVerified ? 'border-green-500' : ''
-                        }`}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         value={formData.nida_number}
                         onChange={handleChange}
                       />
-                      {nidaVerifying && (
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                          <svg className="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        </div>
-                      )}
-                      {nidaVerified && (
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                          <svg className="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                      )}
                     </div>
-                    {nidaVerified && (
-                      <p className="mt-2 text-sm text-green-600">
-                        NIDA number verified successfully
-                      </p>
-                    )}
                   </div>
 
                   <div className="col-span-6 sm:col-span-3">

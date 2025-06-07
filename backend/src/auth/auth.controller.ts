@@ -37,7 +37,8 @@ export class AuthController {
       const payload = { 
         sub: validationResult.citizen.id,
         nida_number: validationResult.citizen.nida_number,
-        role: 'CITIZEN'
+        role: 'CITIZEN',
+        citizen_id: validationResult.citizen.id
       };
 
       return {

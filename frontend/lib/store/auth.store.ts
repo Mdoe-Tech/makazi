@@ -99,7 +99,8 @@ export const useAuthStore = create<AuthState>()(
                   employment_status: citizen.employment_status,
                   employer_name: citizen.employer_name,
                   occupation: citizen.occupation,
-                  registration_status: citizen.registration_status
+                  registration_status: citizen.registration_status,
+                  citizen_id: citizen.id
                 };
                 console.log('Setting citizen data:', userData);
                 set({ 
