@@ -30,19 +30,21 @@ export class CreateCitizenDto {
   @IsOptional()
   middle_name?: string;
 
-  @IsDate()
   @Type(() => Date)
+  @IsDate()
   date_of_birth: Date;
 
   @IsEnum(Gender)
   gender: Gender;
 
   @IsString()
-  nationality: string;
+  @IsOptional()
+  nationality?: string;
 
   @IsEmail()
   @IsOptional()
-  email?: string;
+  @Type(() => String)
+  email?: string | null;
 
   @IsString()
   phone_number: string;
@@ -57,7 +59,8 @@ export class CreateCitizenDto {
   other_names?: string;
 
   @IsEnum(MaritalStatus)
-  marital_status: MaritalStatus;
+  @IsOptional()
+  marital_status?: MaritalStatus;
 
   @IsString()
   @IsOptional()
@@ -72,6 +75,29 @@ export class CreateCitizenDto {
   employment_status?: EmploymentStatus;
 
   @IsString()
-  birth_certificate_number: string;
+  @IsOptional()
+  birth_certificate_number?: string;
+
+  @IsString()
+  @IsOptional()
+  father_name?: string;
+
+  @Type(() => Date)
+  @IsDate()
+  @IsOptional()
+  father_date_of_birth?: Date;
+
+  @IsString()
+  @IsOptional()
+  mother_name?: string;
+
+  @Type(() => Date)
+  @IsDate()
+  @IsOptional()
+  mother_date_of_birth?: Date;
+
+  @IsString()
+  @IsOptional()
+  dossier_number?: string;
 } 
  

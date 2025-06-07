@@ -58,110 +58,37 @@ export class CitizenService {
     return this.citizenRepository.findOne({ where: { nida_number: nidaNumber } });
   }
 
-  async create(createCitizenDto: CreateCitizenDto) {
-    // First verify NIDA number exists
+  async create(createCitizenDto: CreateCitizenDto): Promise<Citizen> {
     try {
-      const { data: nidaData } = await this.nidaService.getNidaDataById(createCitizenDto.nida_number);
-      if (!nidaData) {
-        throw new BadRequestException(
-          'Cannot register citizen. NIDA number does not exist. ' +
-          'Please register NIDA data first.'
-        );
+      // Format dates if they exist
+      if (createCitizenDto.date_of_birth) {
+        createCitizenDto.date_of_birth = new Date(createCitizenDto.date_of_birth);
+      }
+      if (createCitizenDto.father_date_of_birth) {
+        createCitizenDto.father_date_of_birth = new Date(createCitizenDto.father_date_of_birth);
+      }
+      if (createCitizenDto.mother_date_of_birth) {
+        createCitizenDto.mother_date_of_birth = new Date(createCitizenDto.mother_date_of_birth);
       }
 
-      // Format dates to YYYY-MM-DD for comparison
-      const formatDate = (date: string | Date) => {
-        if (date instanceof Date) {
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const day = String(date.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        }
-        // If it's already a string, parse it to get YYYY-MM-DD
-        const parsedDate = new Date(date);
-        if (!isNaN(parsedDate.getTime())) {
-          const year = parsedDate.getFullYear();
-          const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
-          const day = String(parsedDate.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        }
-        throw new BadRequestException('Invalid date format');
-      };
-
-      const nidaDate = formatDate(nidaData.date_of_birth);
-      const citizenDate = formatDate(createCitizenDto.date_of_birth);
-
-      // Debug logging
-      this.loggingService.log(
-        'Comparing NIDA and Citizen data',
-        'Citizen',
-        JSON.stringify({
-          nida: {
-            first_name: nidaData.first_name,
-            last_name: nidaData.last_name,
-            date_of_birth: nidaData.date_of_birth,
-            formatted_date: nidaDate
-          },
-          citizen: {
-            first_name: createCitizenDto.first_name,
-            last_name: createCitizenDto.last_name,
-            date_of_birth: createCitizenDto.date_of_birth,
-            formatted_date: citizenDate
-          }
-        })
-      );
-
-      // Verify basic information matches NIDA data
-      const mismatches = [];
-      if (nidaData.first_name.toLowerCase() !== createCitizenDto.first_name.toLowerCase()) {
-        mismatches.push('first_name');
-      }
-      if (nidaData.last_name.toLowerCase() !== createCitizenDto.last_name.toLowerCase()) {
-        mismatches.push('last_name');
-      }
-      if (nidaDate !== citizenDate) {
-        mismatches.push('date_of_birth');
+      // Verify NIDA number
+      const nidaVerification = await this.nidaService.verifyNidaNumber(createCitizenDto.nida_number);
+      
+      if (!nidaVerification.is_valid) {
+        throw new BadRequestException('Invalid NIDA number');
       }
 
-      if (mismatches.length > 0) {
-        throw new BadRequestException(
-          `Citizen information does not match NIDA records. Mismatched fields: ${mismatches.join(', ')}. ` +
-          'Please ensure first name, last name, and date of birth match NIDA data.'
-        );
-      }
-
-      // Create citizen record
+      // Create citizen
       const citizen = this.citizenRepository.create({
         ...createCitizenDto,
-        is_nida_verified: false, // Will be verified through the verification process
-        registration_status: RegistrationStatus.PENDING,
-        has_password: false, // No password set yet
-        password: null // No password set yet
+        is_nida_verified: true,
+        verification_data: nidaVerification
       });
 
-      this.loggingService.log(
-        'Creating new citizen registration',
-        'Citizen',
-        JSON.stringify({
-          nida_number: createCitizenDto.nida_number,
-          first_name: createCitizenDto.first_name,
-          last_name: createCitizenDto.last_name
-        })
-      );
-
-      return this.citizenRepository.save(citizen);
+      return await this.citizenRepository.save(citizen);
     } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      this.loggingService.error(
-        'Error creating citizen: ' + error.message,
-        'Citizen',
-        JSON.stringify({
-          nida_number: createCitizenDto.nida_number
-        })
-      );
-      throw new BadRequestException('Failed to create citizen record. Please try again.');
+      this.loggingService.error(`Error creating citizen: ${error.message}`, error.stack);
+      throw error;
     }
   }
 

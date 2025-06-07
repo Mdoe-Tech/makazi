@@ -19,7 +19,16 @@ export class NidaService {
   }
 
   async getNidaDataById(id: string): Promise<{ data: NidaData }> {
-    return this.nidaRepository.getNidaDataById(id);
+    const { data } = await this.nidaRepository.getNidaDataById(id);
+    if (!data) return { data: null };
+    
+    // Convert Date fields to ISO strings
+    const formatted = { ...data } as any;
+    if (formatted.date_of_birth) formatted.date_of_birth = formatted.date_of_birth.toISOString();
+    if (formatted.father_date_of_birth) formatted.father_date_of_birth = formatted.father_date_of_birth.toISOString();
+    if (formatted.mother_date_of_birth) formatted.mother_date_of_birth = formatted.mother_date_of_birth.toISOString();
+    
+    return { data: formatted as NidaData };
   }
 
   async verifyNida(data: VerifyNidaDto): Promise<{ data: NidaVerificationResult }> {
@@ -27,6 +36,35 @@ export class NidaService {
   }
 
   async getNidaVerificationHistory(id: string): Promise<{ data: NidaVerificationResult[] }> {
-    return this.nidaRepository.getNidaVerificationHistory(id);
+    const verifications = await this.nidaRepository.getNidaVerificationHistory(id);
+    return {
+      data: verifications.map(v => ({
+        is_valid: v.is_valid,
+        match_score: v.match_score,
+        verification_date: v.verification_date.toISOString(),
+        details: v.details
+      }))
+    };
+  }
+
+  async verifyNidaNumber(nidaNumber: string) {
+    try {
+      const nidaData = await this.nidaRepository.findOne({ nida_number: nidaNumber });
+      
+      if (!nidaData) {
+        return {
+          is_valid: false,
+          message: 'NIDA number not found'
+        };
+      }
+
+      return {
+        is_valid: true,
+        data: nidaData
+      };
+    } catch (error) {
+      this.logger.error(`Error verifying NIDA number: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 } 

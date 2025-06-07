@@ -11,38 +11,39 @@ export class Citizen extends BaseEntity {
   @Column({ unique: true })
   nida_number: string;
 
-  @Column({ default: false })
+  @Column({ default: false, nullable: true })
   is_nida_verified: boolean;
 
-  @Column()
+  @Column({ nullable: true })
   first_name: string;
 
-  @Column()
+  @Column({ nullable: true })
   last_name: string;
 
   @Column({ nullable: true })
   middle_name: string;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   date_of_birth: Date;
 
   @Column({
     type: 'enum',
     enum: Gender,
-    default: Gender.MALE
+    default: Gender.MALE,
+    nullable: true
   })
   gender: Gender;
 
-  @Column({ default: 'Tanzania' })
+  @Column({ default: 'Tanzania', nullable: true })
   nationality: string;
 
   @Column({ nullable: true })
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   phone_number: string;
 
-  @Column('jsonb')
+  @Column('jsonb', { nullable: true })
   address: {
     street: string;
     city: string;
@@ -58,7 +59,7 @@ export class Citizen extends BaseEntity {
     quality_score: number;
   };
 
-  @Column({ default: true })
+  @Column({ default: true, nullable: true })
   is_active: boolean;
 
   @Column({ type: 'jsonb', nullable: true })
@@ -73,7 +74,8 @@ export class Citizen extends BaseEntity {
 
   @Column({
     type: 'enum',
-    enum: MaritalStatus
+    enum: MaritalStatus,
+    nullable: true
   })
   marital_status: MaritalStatus;
 
@@ -99,7 +101,8 @@ export class Citizen extends BaseEntity {
   @Column({
     type: 'enum',
     enum: RegistrationStatus,
-    default: RegistrationStatus.PENDING
+    default: RegistrationStatus.PENDING,
+    nullable: true
   })
   registration_status: RegistrationStatus;
 
@@ -112,13 +115,13 @@ export class Citizen extends BaseEntity {
   @Column({ type: 'jsonb', nullable: true })
   verification_data: any;
 
-  @Column()
+  @Column({ nullable: true })
   birth_certificate_number: string;
 
   @Column({ nullable: true })
   password: string;
 
-  @Column({ default: false })
+  @Column({ default: false, nullable: true })
   has_password: boolean;
 
   @Column({ type: 'jsonb', nullable: true })

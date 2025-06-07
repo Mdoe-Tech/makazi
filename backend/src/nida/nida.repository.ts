@@ -163,26 +163,9 @@ export class NidaRepository {
     return { data: formattedData, total };
   }
 
-  async getNidaDataById(id: string): Promise<{ data: NidaData }> {
-    const data = await this.nidaRepository.findOne({ where: { nida_number: id } });
-    if (!data) return { data: null };
-    
-    // Convert all date fields to ISO strings
-    const formatted = { ...data } as any;
-    
-    // Convert Date fields to ISO strings
-    if (formatted.date_of_birth) formatted.date_of_birth = formatted.date_of_birth.toISOString();
-    if (formatted.father_date_of_birth) formatted.father_date_of_birth = formatted.father_date_of_birth.toISOString();
-    if (formatted.mother_date_of_birth) formatted.mother_date_of_birth = formatted.mother_date_of_birth.toISOString();
-    if (formatted.application_date) formatted.application_date = formatted.application_date.toISOString();
-    if (formatted.verification_date) formatted.verification_date = formatted.verification_date.toISOString();
-    if (formatted.registration_date) formatted.registration_date = formatted.registration_date.toISOString();
-    if (formatted.expiry_date) formatted.expiry_date = formatted.expiry_date.toISOString();
-    if (formatted.last_updated) formatted.last_updated = formatted.last_updated.toISOString();
-    if (formatted.created_at) formatted.created_at = formatted.created_at.toISOString();
-    if (formatted.updated_at) formatted.updated_at = formatted.updated_at.toISOString();
-
-    return { data: formatted as NidaData };
+  async getNidaDataById(nidaNumber: string): Promise<{ data: Nida | null }> {
+    const nidaData = await this.nidaRepository.findOne({ where: { nida_number: nidaNumber } });
+    return { data: nidaData };
   }
 
   async verifyNida(data: VerifyNidaDto): Promise<{ data: NidaVerificationResult }> {
@@ -256,19 +239,14 @@ export class NidaRepository {
     };
   }
 
-  async getNidaVerificationHistory(id: string): Promise<{ data: NidaVerificationResult[] }> {
-    const verifications = await this.verificationRepository.find({
-      where: { nida_number: id },
+  async getNidaVerificationHistory(nidaNumber: string): Promise<NidaVerification[]> {
+    return this.verificationRepository.find({
+      where: { nida_number: nidaNumber },
       order: { verification_date: 'DESC' }
     });
+  }
 
-    return {
-      data: verifications.map(v => ({
-        is_valid: v.is_valid,
-        match_score: v.match_score,
-        verification_date: v.verification_date.toISOString(),
-        details: v.details
-      }))
-    };
+  async findOne(where: any): Promise<Nida> {
+    return this.nidaRepository.findOne({ where });
   }
 } 

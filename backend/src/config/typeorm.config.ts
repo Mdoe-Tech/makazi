@@ -10,7 +10,7 @@ export const getTypeOrmConfig = (configService: ConfigService): TypeOrmModuleOpt
   password: configService.get('DB_PASSWORD', '@Issaally99'),
   database: configService.get('DB_DATABASE', 'makazi'),
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-  synchronize: true,
+  synchronize: false,
   logging: configService.get('NODE_ENV') === 'development',
   ssl: configService.get('DB_SSL') === 'true' ? {
     rejectUnauthorized: false

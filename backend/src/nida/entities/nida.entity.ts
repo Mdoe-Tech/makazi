@@ -7,22 +7,22 @@ export class Nida {
   @Index({ unique: true })
   nida_number: string;
 
-  @Column()
+  @Column({ nullable: true })
   first_name: string;
 
   @Column({ nullable: true })
   middle_name: string;
 
-  @Column()
+  @Column({ nullable: true })
   last_name: string;
 
   @Column({ nullable: true })
   other_names: string;
 
-  @Column()
+  @Column({ nullable: true })
   date_of_birth: Date;
 
-  @Column()
+  @Column({ nullable: true })
   nationality: string;
 
   @Column({ nullable: true })
@@ -31,7 +31,7 @@ export class Nida {
   @Column({ nullable: true })
   phone_number: string;
 
-  @Column()
+  @Column({ nullable: true })
   gender: string;
 
   @Column({ nullable: true })
@@ -91,61 +91,61 @@ export class Nida {
   @Column({ nullable: true })
   birth_country: string;
 
-  @Column()
+  @Column({ nullable: true })
   birth_region: string;
 
-  @Column()
+  @Column({ nullable: true })
   birth_district: string;
 
-  @Column()
+  @Column({ nullable: true })
   birth_ward: string;
 
-  @Column()
+  @Column({ nullable: true })
   current_residence_house_number: string;
 
-  @Column()
+  @Column({ nullable: true })
   current_residence_region: string;
 
-  @Column()
+  @Column({ nullable: true })
   current_residence_postal_code: string;
 
-  @Column()
+  @Column({ nullable: true })
   current_residence_district: string;
 
-  @Column()
+  @Column({ nullable: true })
   current_residence_ward: string;
 
-  @Column()
+  @Column({ nullable: true })
   current_residence_village: string;
 
-  @Column()
+  @Column({ nullable: true })
   current_residence_street: string;
 
-  @Column()
+  @Column({ nullable: true })
   current_residence_postal_box: string;
 
-  @Column()
+  @Column({ nullable: true })
   permanent_residence_house_number: string;
 
-  @Column()
+  @Column({ nullable: true })
   permanent_residence_region: string;
 
-  @Column()
+  @Column({ nullable: true })
   permanent_residence_postal_code: string;
 
-  @Column()
+  @Column({ nullable: true })
   permanent_residence_district: string;
 
-  @Column()
+  @Column({ nullable: true })
   permanent_residence_ward: string;
 
-  @Column()
+  @Column({ nullable: true })
   permanent_residence_village: string;
 
-  @Column()
+  @Column({ nullable: true })
   permanent_residence_street: string;
 
-  @Column()
+  @Column({ nullable: true })
   permanent_residence_postal_box: string;
 
   @Column({ nullable: true })
@@ -184,55 +184,55 @@ export class Nida {
   @Column({ nullable: true })
   higher_secondary_education_certificate_number: string;
 
-  @Column()
+  @Column({ nullable: true })
   applicant_signature: string;
 
-  @Column()
+  @Column({ nullable: true })
   official_use_executive_officer_name: string;
 
-  @Column()
+  @Column({ nullable: true })
   official_use_center_number: string;
 
-  @Column()
+  @Column({ nullable: true })
   official_use_region: string;
 
-  @Column()
+  @Column({ nullable: true })
   official_use_district: string;
 
-  @Column()
+  @Column({ nullable: true })
   official_use_ward: string;
 
-  @Column()
+  @Column({ nullable: true })
   official_use_center_name: string;
 
-  @Column()
+  @Column({ nullable: true })
   application_date: Date;
 
-  @Column()
+  @Column({ nullable: true })
   registration_officer_name: string;
 
-  @Column()
+  @Column({ nullable: true })
   immigration_officer_name: string;
 
-  @Column()
+  @Column({ nullable: true })
   rita_rgo_officer_name: string;
 
-  @Column()
+  @Column({ nullable: true })
   weo_employer_name: string;
 
-  @Column()
+  @Column({ nullable: true })
   nida_officer_name: string;
 
-  @Column()
+  @Column({ nullable: true })
   primary_school_name: string;
 
-  @Column()
+  @Column({ nullable: true })
   primary_school_district: string;
 
-  @Column()
+  @Column({ nullable: true })
   primary_school_graduation_year: string;
 
-  @Column({ default: false })
+  @Column({ default: false, nullable: true })
   is_verified: boolean;
 
   @Column({ nullable: true })
@@ -241,7 +241,7 @@ export class Nida {
   @Column('jsonb', { nullable: true })
   metadata: Record<string, any>;
 
-  @Column('jsonb')
+  @Column('jsonb', { nullable: true })
   address: {
     street: string;
     city: string;
