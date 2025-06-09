@@ -71,18 +71,24 @@ export class CitizenService {
         createCitizenDto.mother_date_of_birth = new Date(createCitizenDto.mother_date_of_birth);
       }
 
-      // Verify NIDA number
-      const nidaVerification = await this.nidaService.verifyNidaNumber(createCitizenDto.nida_number);
+      // Verify NIDA number and data
+      const nidaVerification = await this.nidaService.verifyNida({
+        nida_number: createCitizenDto.nida_number,
+        first_name: createCitizenDto.first_name,
+        last_name: createCitizenDto.last_name,
+        date_of_birth: createCitizenDto.date_of_birth.toISOString().split('T')[0],
+        gender: createCitizenDto.gender
+      });
       
-      if (!nidaVerification.is_valid) {
-        throw new BadRequestException('Invalid NIDA number');
+      if (!nidaVerification.data.is_valid) {
+        throw new BadRequestException('NIDA verification failed: ' + JSON.stringify(nidaVerification.data.details));
       }
 
       // Create citizen
       const citizen = this.citizenRepository.create({
         ...createCitizenDto,
         is_nida_verified: true,
-        verification_data: nidaVerification
+        verification_data: nidaVerification.data
       });
 
       return await this.citizenRepository.save(citizen);

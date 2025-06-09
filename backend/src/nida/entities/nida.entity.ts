@@ -19,7 +19,7 @@ export class Nida {
   @Column({ nullable: true })
   other_names: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   date_of_birth: Date;
 
   @Column({ nullable: true })

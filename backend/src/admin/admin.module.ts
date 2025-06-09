@@ -5,10 +5,11 @@ import { AdminService } from './admin.service';
 import { AdminRepository } from './admin.repository';
 import { Admin } from './entities/admin.entity';
 import { LoggingModule } from '../logging/logging.module';
+import { AdminRole } from './entities/admin-role.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Admin]),
+    TypeOrmModule.forFeature([Admin, AdminRole]),
     LoggingModule
   ],
   controllers: [AdminController],

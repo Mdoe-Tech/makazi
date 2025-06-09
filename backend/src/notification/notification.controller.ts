@@ -16,7 +16,7 @@ export class NotificationController {
   ) {}
 
   @Post()
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @UsePipes(new ValidationPipe({ transform: true }))
   async create(@Body() createNotificationDto: CreateNotificationDto) {
     this.loggingService.log('Creating new notification');
@@ -24,19 +24,19 @@ export class NotificationController {
   }
 
   @Get()
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async findAll() {
     return this.notificationService.findAll();
   }
 
   @Get(':id')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async findOne(@Param('id') id: string) {
     return this.notificationService.findOne(id);
   }
 
   @Get('recipient/:type/:id')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async findByRecipient(
     @Param('type') type: string,
     @Param('id') id: string
@@ -45,7 +45,7 @@ export class NotificationController {
   }
 
   @Patch(':id')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @UsePipes(new ValidationPipe({ transform: true }))
   async update(
     @Param('id') id: string,
@@ -55,25 +55,25 @@ export class NotificationController {
   }
 
   @Patch(':id/read')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async markAsRead(@Param('id') id: string) {
     return this.notificationService.markAsRead(id);
   }
 
   @Patch(':id/archive')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async markAsArchived(@Param('id') id: string) {
     return this.notificationService.markAsArchived(id);
   }
 
   @Delete(':id')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async remove(@Param('id') id: string) {
     return this.notificationService.remove(id);
   }
 
   @Get('my-notifications')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async getMyNotifications(@Request() req) {
     return this.notificationService.findByRecipient(req.user.admin_id, 'admin');
   }

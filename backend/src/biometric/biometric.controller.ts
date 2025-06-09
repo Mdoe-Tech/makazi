@@ -42,21 +42,21 @@ export class BiometricController {
   }
 
   @Get()
-  @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER)
+  @Roles(Role.ADMIN, Role.REGISTRAR, Role.VERIFIER)
   async findAll() {
     this.loggingService.log(
       'Fetching all biometric records',
       'Biometric',
       {
         action: 'findAll',
-        roles: [Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER]
+        roles: [Role.ADMIN, Role.REGISTRAR, Role.VERIFIER]
       }
     );
     return this.biometricService.findAll();
   }
 
   @Get(':id')
-  @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER)
+  @Roles(Role.ADMIN, Role.REGISTRAR, Role.VERIFIER)
   async findOne(@Param('id') id: number) {
     this.loggingService.log(
       `Fetching biometric record ${id}`,
@@ -64,14 +64,14 @@ export class BiometricController {
       {
         action: 'findOne',
         biometricId: id,
-        roles: [Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER]
+        roles: [Role.ADMIN, Role.REGISTRAR, Role.VERIFIER]
       }
     );
     return this.biometricService.findOne(id.toString());
   }
 
   @Get('citizen/:id')
-  @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER)
+  @Roles(Role.ADMIN, Role.REGISTRAR, Role.VERIFIER)
   async findByCitizenId(@Param('id') citizenId: number) {
     this.loggingService.log(
       `Fetching fingerprint data for citizen ${citizenId}`,
@@ -79,7 +79,7 @@ export class BiometricController {
       {
         action: 'findByCitizenId',
         citizenId,
-        roles: [Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER]
+        roles: [Role.ADMIN, Role.REGISTRAR, Role.VERIFIER]
       }
     );
     return this.biometricService.findByCitizenId(citizenId.toString());
@@ -106,7 +106,7 @@ export class BiometricController {
   }
 
   @Delete(':id')
-  @Roles(Role.OFFICE_ADMIN)
+  @Roles(Role.ADMIN)
   async remove(@Param('id') id: number) {
     this.loggingService.log(`Deleting biometric record ${id}`);
     return this.biometricService.remove(id.toString());

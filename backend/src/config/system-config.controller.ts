@@ -15,21 +15,15 @@ export class SystemConfigController {
     private readonly loggingService: LoggingService
   ) {}
 
-  @Get()
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
-  async getAllConfigs() {
-    return this.configService.findAll();
-  }
-
   @Get('category/:category')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async getConfigsByCategory(@Param('category') category: ConfigCategory) {
     return this.configService.findByCategory(category);
   }
 
   @Get(':key')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
-  async getConfig(@Param('key') key: string) {
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  async getConfigByKey(@Param('key') key: string) {
     return this.configService.findOne(key);
   }
 

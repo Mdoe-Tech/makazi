@@ -4,33 +4,65 @@ import { User } from '../auth/types';
 export enum AdminRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN = 'ADMIN',
-  VERIFIER = 'VERIFIER',
-  VIEWER = 'VIEWER',
+  REGIONAL_ADMIN = 'REGIONAL_ADMIN',
+  DISTRICT_ADMIN = 'DISTRICT_ADMIN',
+  WARD_ADMIN = 'WARD_ADMIN',
+  OFFICE_ADMIN = 'OFFICE_ADMIN',
   REGISTRAR = 'REGISTRAR',
-  APPROVER = 'APPROVER'
+  VERIFIER = 'VERIFIER',
+  APPROVER = 'APPROVER',
+  VIEWER = 'VIEWER'
 }
 
 export interface Admin extends BaseEntity {
   username: string;
   email: string;
-  role: AdminRole;
+  first_name: string;
+  last_name: string;
+  phone_number?: string;
+  role: AdminRole; // Primary role for backward compatibility
+  roles: AdminRole[]; // All roles
   is_active: boolean;
-  last_login?: Date;
-  permissions: string[];
+  permissions: {
+    can_manage_users: boolean;
+    can_manage_roles: boolean;
+    can_view_audit_logs: boolean;
+    can_manage_settings: boolean;
+  };
   metadata?: Record<string, any>;
+  last_login?: {
+    timestamp: Date;
+    ip_address: string;
+    user_agent: string;
+  };
 }
 
 export interface CreateAdminDto {
   username: string;
   email: string;
   password: string;
-  role: AdminRole;
+  role: AdminRole; // Primary role for backward compatibility
+  roles: AdminRole[]; // All roles
   permissions: string[];
 }
 
-export interface UpdateAdminDto extends Partial<Omit<CreateAdminDto, 'password'>> {
-  is_active?: boolean;
+export interface UpdateAdminDto {
+  username?: string;
+  email?: string;
   password?: string;
+  first_name?: string;
+  last_name?: string;
+  phone_number?: string;
+  role?: AdminRole; // Primary role for backward compatibility
+  roles?: AdminRole[]; // All roles
+  is_active?: boolean;
+  permissions?: {
+    can_manage_users: boolean;
+    can_manage_roles: boolean;
+    can_view_audit_logs: boolean;
+    can_manage_settings: boolean;
+  };
+  metadata?: Record<string, any>;
 }
 
 export interface AdminFilters {
@@ -60,12 +92,12 @@ export interface UserFilters {
 
 export interface CreateUserDto {
   username: string;
-  email: string;
   password: string;
+  email: string;
   first_name: string;
   last_name: string;
-  phone_number?: string;
-  role: string;
+  phone_number: string;
+  roles: AdminRole[];
   is_active: boolean;
   permissions: {
     can_manage_users: boolean;
@@ -73,7 +105,11 @@ export interface CreateUserDto {
     can_view_audit_logs: boolean;
     can_manage_settings: boolean;
   };
-  metadata?: Record<string, any>;
+  metadata?: {
+    region?: string;
+    district?: string;
+    ward?: string;
+  };
 }
 
 export interface UpdateUserDto {

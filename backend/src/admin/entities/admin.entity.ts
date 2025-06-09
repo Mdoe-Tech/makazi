@@ -1,10 +1,11 @@
-import { Entity, Column } from 'typeorm';
-import { Role } from '../../auth/guards/roles.guard';
+import { Entity, Column, OneToMany } from 'typeorm';
 import { BaseEntity } from '../../common/entities/base.entity';
+import { Role } from '../../auth/enums/role.enum';
+import { AdminRole } from './admin-role.entity';
 
-@Entity()
+@Entity('admin')
 export class Admin extends BaseEntity {
-  @Column({ unique: true })
+  @Column()
   username: string;
 
   @Column()
@@ -16,7 +17,7 @@ export class Admin extends BaseEntity {
   @Column()
   last_name: string;
 
-  @Column({ unique: true })
+  @Column()
   email: string;
 
   @Column({ nullable: true })
@@ -27,18 +28,16 @@ export class Admin extends BaseEntity {
     enum: Role,
     default: Role.ADMIN
   })
-  role: Role;
+  role: Role; // Primary role (SUPER_ADMIN, ADMIN, CITIZEN)
+
+  @OneToMany(() => AdminRole, adminRole => adminRole.admin, { eager: true })
+  functional_roles: AdminRole[]; // Functional roles (REGISTRAR, VERIFIER, etc.)
 
   @Column({ default: true })
   is_active: boolean;
 
   @Column({ type: 'jsonb', nullable: true })
-  permissions: {
-    can_manage_users: boolean;
-    can_manage_roles: boolean;
-    can_view_audit_logs: boolean;
-    can_manage_settings: boolean;
-  };
+  permissions: any;
 
   @Column({ type: 'jsonb', nullable: true })
   last_login: {

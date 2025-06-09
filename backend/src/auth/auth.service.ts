@@ -68,6 +68,8 @@ export class AuthService {
       username: user.username, 
       sub: user.id,
       role: user.role,
+      roles: user.roles || [],
+      functional_roles: user.functional_roles || [],
       permissions: user.permissions
     };
 
@@ -79,6 +81,8 @@ export class AuthService {
         id: user.id,
         username: user.username,
         role: user.role,
+        roles: user.roles || [],
+        functional_roles: user.functional_roles || [],
         permissions: user.permissions
       }
     };

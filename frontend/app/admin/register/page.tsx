@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
 import { useAdminStore } from '@/lib/store/admin.store';
 import { UserRole } from '@/lib/api/auth/types';
 import { AdminRole } from '@/lib/api/admin/types';
+import { regions, getDistrictsByRegion, getWardsByDistrict } from '@/lib/data/tanzania-locations';
 
 interface FormData {
   username: string;
@@ -15,7 +16,10 @@ interface FormData {
   firstName: string;
   lastName: string;
   phoneNumber: string;
-  role: AdminRole;
+  roles: AdminRole[];
+  region?: string;
+  district?: string;
+  ward?: string;
 }
 
 export default function AdminRegistrationPage() {
@@ -30,9 +34,11 @@ export default function AdminRegistrationPage() {
     firstName: '',
     lastName: '',
     phoneNumber: '',
-    role: AdminRole.ADMIN,
+    roles: [AdminRole.VIEWER],
   });
   const [formError, setFormError] = useState<string | null>(null);
+  const [availableDistricts, setAvailableDistricts] = useState<any[]>([]);
+  const [availableWards, setAvailableWards] = useState<any[]>([]);
 
   // Only SUPER_ADMIN can access this page
   if (!user || user.role !== UserRole.SUPER_ADMIN) {
@@ -63,13 +69,18 @@ export default function AdminRegistrationPage() {
         first_name: formData.firstName,
         last_name: formData.lastName,
         phone_number: formData.phoneNumber,
-        role: formData.role,
+        roles: formData.roles,
         is_active: true,
         permissions: {
-          can_manage_users: formData.role === AdminRole.SUPER_ADMIN,
-          can_manage_roles: formData.role === AdminRole.SUPER_ADMIN,
-          can_view_audit_logs: [AdminRole.SUPER_ADMIN, AdminRole.ADMIN].includes(formData.role),
-          can_manage_settings: formData.role === AdminRole.SUPER_ADMIN
+          can_manage_users: false,
+          can_manage_roles: false,
+          can_view_audit_logs: false,
+          can_manage_settings: false
+        },
+        metadata: {
+          region: formData.region,
+          district: formData.district,
+          ward: formData.ward
         }
       });
       router.push('/admin/users');
@@ -93,10 +104,37 @@ export default function AdminRegistrationPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    if (name === 'roles') {
+      const select = e.target as HTMLSelectElement;
+      const selectedOptions = Array.from(select.selectedOptions).map(option => option.value as AdminRole);
+      setFormData(prev => ({
+        ...prev,
+        roles: selectedOptions
+      }));
+    } else if (name === 'region') {
+      const districts = getDistrictsByRegion(value);
+      setAvailableDistricts(districts);
+      setFormData(prev => ({
+        ...prev,
+        region: value,
+        district: '',
+        ward: ''
+      }));
+      setAvailableWards([]);
+    } else if (name === 'district') {
+      const wards = getWardsByDistrict(value);
+      setAvailableWards(wards);
+      setFormData(prev => ({
+        ...prev,
+        district: value,
+        ward: ''
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   return (
@@ -107,11 +145,11 @@ export default function AdminRegistrationPage() {
             Register New Administrator
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Create a new administrator account with specific role and permissions
+            Create a new administrator account with specific roles and permissions
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-lg shadow">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             {/* Basic Information */}
             <div>
@@ -182,7 +220,6 @@ export default function AdminRegistrationPage() {
                 type="tel"
                 name="phoneNumber"
                 id="phoneNumber"
-                required
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 value={formData.phoneNumber}
                 onChange={handleChange}
@@ -190,19 +227,18 @@ export default function AdminRegistrationPage() {
             </div>
 
             <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                Role
+              <label htmlFor="roles" className="block text-sm font-medium text-gray-700">
+                Roles (Hold Ctrl/Cmd to select multiple)
               </label>
               <select
-                id="role"
-                name="role"
+                id="roles"
+                name="roles"
                 required
+                multiple
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                value={formData.role}
+                value={formData.roles}
                 onChange={handleChange}
               >
-                <option value={AdminRole.SUPER_ADMIN}>Super Admin</option>
-                <option value={AdminRole.ADMIN}>Admin</option>
                 <option value={AdminRole.REGISTRAR}>Registrar</option>
                 <option value={AdminRole.VERIFIER}>Verifier</option>
                 <option value={AdminRole.APPROVER}>Approver</option>
@@ -241,7 +277,72 @@ export default function AdminRegistrationPage() {
             </div>
           </div>
 
-          {(formError || error) && (
+          {/* Location Fields */}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+            <div>
+              <label htmlFor="region" className="block text-sm font-medium text-gray-700">
+                Region
+              </label>
+              <select
+                id="region"
+                name="region"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                value={formData.region || ''}
+                onChange={handleChange}
+              >
+                <option value="">Select Region</option>
+                {regions.map(region => (
+                  <option key={region.id} value={region.id}>
+                    {region.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="district" className="block text-sm font-medium text-gray-700">
+                District
+              </label>
+              <select
+                id="district"
+                name="district"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                value={formData.district || ''}
+                onChange={handleChange}
+                disabled={!formData.region}
+              >
+                <option value="">Select District</option>
+                {availableDistricts.map(district => (
+                  <option key={district.id} value={district.id}>
+                    {district.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="ward" className="block text-sm font-medium text-gray-700">
+                Ward
+              </label>
+              <select
+                id="ward"
+                name="ward"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                value={formData.ward || ''}
+                onChange={handleChange}
+                disabled={!formData.district}
+              >
+                <option value="">Select Ward</option>
+                {availableWards.map(ward => (
+                  <option key={ward.id} value={ward.id}>
+                    {ward.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {formError && (
             <div className="rounded-md bg-red-50 p-4">
               <div className="flex">
                 <div className="flex-shrink-0">
@@ -250,9 +351,7 @@ export default function AdminRegistrationPage() {
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">
-                    {formError || error}
-                  </h3>
+                  <h3 className="text-sm font-medium text-red-800">{formError}</h3>
                 </div>
               </div>
             </div>

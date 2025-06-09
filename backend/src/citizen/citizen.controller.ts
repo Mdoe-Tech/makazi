@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards, UsePipes, BadRequestException, HttpCode, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards, UsePipes, BadRequestException, HttpCode, ValidationPipe, Request } from '@nestjs/common';
 import { CitizenService } from './citizen.service';
 import { Citizen } from './entities/citizen.entity';
 import { CreateCitizenDto } from './dto/create-citizen.dto';
@@ -27,21 +27,21 @@ export class CitizenController {
   ) {}
 
   @Get()
-  @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER, Role.APPROVER)
+  @Roles(Role.ADMIN, Role.REGISTRAR, Role.VERIFIER, Role.APPROVER)
   async findAll(): Promise<Citizen[]> {
     this.loggingService.log(
       'Fetching all citizens',
       'Citizen',
       {
         action: 'findAll',
-        roles: [Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER, Role.APPROVER]
+        roles: [Role.ADMIN, Role.REGISTRAR, Role.VERIFIER, Role.APPROVER]
       }
     );
     return this.citizenService.findAll();
   }
 
   @Get(':id')
-  @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER, Role.APPROVER)
+  @Roles(Role.ADMIN, Role.REGISTRAR, Role.VERIFIER, Role.APPROVER)
   @UsePipes(new ValidationPipe({ transform: true }))
   async findOne(@Param() params: UUIDParam): Promise<Citizen> {
     this.loggingService.log(
@@ -50,14 +50,14 @@ export class CitizenController {
       {
         action: 'findOne',
         citizenId: params.id,
-        roles: [Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER, Role.APPROVER]
+        roles: [Role.ADMIN, Role.REGISTRAR, Role.VERIFIER, Role.APPROVER]
       }
     );
     return this.citizenService.findOne(params.id);
   }
 
   @Post()
-  @Roles(Role.REGISTRAR)
+  @Roles(Role.ADMIN, Role.REGISTRAR)
   @UsePipes(new ValidationPipe({ transform: true }))
   async create(@Body() createCitizenDto: CreateCitizenDto): Promise<Citizen> {
     this.loggingService.log(
@@ -83,7 +83,7 @@ export class CitizenController {
   }
 
   @Put(':id')
-  @Roles(Role.REGISTRAR)
+  @Roles(Role.ADMIN, Role.REGISTRAR)
   @UsePipes(new ValidationPipe({ transform: true }))
   async update(@Param() params: UUIDParam, @Body() updateCitizenDto: UpdateCitizenDto): Promise<Citizen> {
     this.loggingService.log(`Updating citizen with ID: ${params.id}`);
@@ -91,7 +91,7 @@ export class CitizenController {
   }
 
   @Delete(':id')
-  @Roles(Role.OFFICE_ADMIN)
+  @Roles(Role.ADMIN)
   @UsePipes(new ValidationPipe({ transform: true }))
   async remove(@Param() params: UUIDParam): Promise<Citizen> {
     this.loggingService.log(`Deleting citizen with ID: ${params.id}`);
@@ -100,7 +100,7 @@ export class CitizenController {
 
   // Registration workflow endpoints
   @Post(':id/biometric')
-  @Roles(Role.REGISTRAR)
+  @Roles(Role.ADMIN, Role.REGISTRAR)
   @UsePipes(new ValidationPipe({ transform: true }))
   async submitBiometricData(
     @Param() params: UUIDParam,
@@ -124,7 +124,7 @@ export class CitizenController {
   }
 
   @Post(':id/documents')
-  @Roles(Role.REGISTRAR)
+  @Roles(Role.ADMIN, Role.REGISTRAR)
   @UsePipes(new ValidationPipe({ transform: true }))
   async submitDocuments(
     @Param() params: UUIDParam,
@@ -164,7 +164,7 @@ export class CitizenController {
   }
 
   @Post(':id/approve')
-  @Roles(Role.APPROVER)
+  @Roles(Role.ADMIN, Role.APPROVER)
   @UsePipes(new ValidationPipe({ transform: true }))
   @HttpCode(200)
   async approveRegistration(@Param() params: UUIDParam): Promise<Citizen> {
@@ -173,7 +173,7 @@ export class CitizenController {
   }
 
   @Post(':id/reject')
-  @Roles(Role.APPROVER)
+  @Roles(Role.ADMIN, Role.APPROVER)
   @UsePipes(new ValidationPipe({ transform: true }))
   @HttpCode(200)
   async rejectRegistration(
@@ -191,5 +191,25 @@ export class CitizenController {
     @Body() setPasswordDto: SetPasswordDto
   ) {
     return this.citizenService.setPassword(nida, setPasswordDto.password);
+  }
+
+  @Get('profile')
+  @Roles(Role.CITIZEN)
+  async getProfile(@Request() req) {
+    const citizen = await this.citizenService.findOne(req.user.citizen_id);
+    return {
+      status: 'success',
+      data: citizen
+    };
+  }
+
+  @Post('profile')
+  @Roles(Role.CITIZEN)
+  async updateProfile(@Request() req, @Body() updateCitizenDto: UpdateCitizenDto) {
+    const citizen = await this.citizenService.update(req.user.citizen_id, updateCitizenDto);
+    return {
+      status: 'success',
+      data: citizen
+    };
   }
 } 

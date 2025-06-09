@@ -1,44 +1,61 @@
 import { apiClientInstance } from '../client';
 import type { PaginatedResponse, PaginationParams } from '../types';
 import type { Citizen, CitizenFilters, CreateCitizenDto, UpdateCitizenDto } from './types';
+import type { ApiResponse } from '../types';
 
 class CitizenService {
-  private readonly baseUrl = '/citizen';
-
-  async getCitizens(params: PaginationParams & CitizenFilters): Promise<PaginatedResponse<Citizen>> {
-    return apiClientInstance.get<PaginatedResponse<Citizen>>(this.baseUrl, { params });
+  async getCitizens(): Promise<Citizen[]> {
+    const response = await apiClientInstance.get<{ status: string; data: Citizen[] }>('/citizen');
+    return response.data;
   }
 
-  async getCitizenById(id: string): Promise<{ data: Citizen }> {
-    return apiClientInstance.get<{ data: Citizen }>(`${this.baseUrl}/${id}`);
+  async getCitizen(id: string): Promise<Citizen> {
+    const response = await apiClientInstance.get<ApiResponse<Citizen>>(`/citizen/${id}`);
+    return response.data;
   }
 
-  async createCitizen(data: CreateCitizenDto): Promise<{ data: Citizen }> {
-    return apiClientInstance.post<{ data: Citizen }>(this.baseUrl, data);
+  async approveCitizen(id: string): Promise<Citizen> {
+    const response = await apiClientInstance.post<ApiResponse<Citizen>>(`/citizen/${id}/approve`);
+    return response.data;
   }
 
-  async updateCitizen(id: string, data: UpdateCitizenDto): Promise<{ data: Citizen }> {
-    return apiClientInstance.patch<{ data: Citizen }>(`${this.baseUrl}/${id}`, data);
+  async rejectCitizen(id: string, reason: string): Promise<Citizen> {
+    const response = await apiClientInstance.post<ApiResponse<Citizen>>(`/citizen/${id}/reject`, { reason });
+    return response.data;
+  }
+
+  async createCitizen(data: Omit<Citizen, 'id' | 'created_at' | 'updated_at'>): Promise<Citizen> {
+    const response = await apiClientInstance.post<ApiResponse<Citizen>>('/citizen', data);
+    return response.data;
+  }
+
+  async updateCitizen(id: string, data: Partial<Citizen>): Promise<Citizen> {
+    const response = await apiClientInstance.patch<ApiResponse<Citizen>>(`/citizen/${id}`, data);
+    return response.data;
   }
 
   async deleteCitizen(id: string): Promise<void> {
-    return apiClientInstance.delete(`${this.baseUrl}/${id}`);
+    await apiClientInstance.delete(`/citizen/${id}`);
   }
 
-  async verifyCitizen(id: string): Promise<{ data: Citizen }> {
-    return apiClientInstance.post<{ data: Citizen }>(`${this.baseUrl}/${id}/verify`);
+  async verifyCitizen(id: string): Promise<Citizen> {
+    const response = await apiClientInstance.post<ApiResponse<Citizen>>(`/citizen/${id}/verify`);
+    return response.data;
   }
 
-  async rejectCitizen(id: string, reason: string): Promise<{ data: Citizen }> {
-    return apiClientInstance.post<{ data: Citizen }>(`${this.baseUrl}/${id}/reject`, { reason });
+  async submitBiometricData(id: string, biometricData: any): Promise<Citizen> {
+    const response = await apiClientInstance.post<ApiResponse<Citizen>>(`/citizen/${id}/biometric`, biometricData);
+    return response.data;
   }
 
-  async uploadBiometricData(
-    id: string,
-    biometricData: FormData
-  ): Promise<{ data: Citizen }> {
+  async submitDocuments(id: string, documents: any): Promise<Citizen> {
+    const response = await apiClientInstance.post<ApiResponse<Citizen>>(`/citizen/${id}/documents`, documents);
+    return response.data;
+  }
+
+  async uploadBiometricData(id: string, biometricData: FormData): Promise<{ data: Citizen }> {
     return apiClientInstance.post<{ data: Citizen }>(
-      `${this.baseUrl}/${id}/biometric`,
+      `/citizen/${id}/biometric`,
       biometricData,
       {
         headers: {
@@ -48,12 +65,9 @@ class CitizenService {
     );
   }
 
-  async uploadDocument(
-    id: string,
-    documentData: FormData
-  ): Promise<{ data: Citizen }> {
+  async uploadDocument(id: string, documentData: FormData): Promise<{ data: Citizen }> {
     return apiClientInstance.post<{ data: Citizen }>(
-      `${this.baseUrl}/${id}/documents`,
+      `/citizen/${id}/documents`,
       documentData,
       {
         headers: {
@@ -64,19 +78,15 @@ class CitizenService {
   }
 
   async getCitizenDocuments(id: string): Promise<{ data: any }> {
-    return apiClientInstance.get<{ data: any }>(`${this.baseUrl}/${id}/documents`);
+    return apiClientInstance.get<{ data: any }>(`/citizen/${id}/documents`);
   }
 
   async getCitizenBiometricData(id: string): Promise<{ data: any }> {
-    return apiClientInstance.get<{ data: any }>(`${this.baseUrl}/${id}/biometric`);
+    return apiClientInstance.get<{ data: any }>(`/citizen/${id}/biometric`);
   }
 
-  async getCitizenVerificationHistory(
-    id: string
-  ): Promise<{ data: any }> {
-    return apiClientInstance.get<{ data: any }>(
-      `${this.baseUrl}/${id}/verification-history`
-    );
+  async getCitizenVerificationHistory(id: string): Promise<{ data: any }> {
+    return apiClientInstance.get<{ data: any }>(`/citizen/${id}/verification-history`);
   }
 }
 

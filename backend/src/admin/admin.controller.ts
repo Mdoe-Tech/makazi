@@ -23,7 +23,10 @@ export class AdminController {
     try {
       const result = await this.adminService.createFirstAdmin(createAdminDto);
       this.loggingService.log(`Successfully created first admin user with ID: ${result.id}`);
-      return result;
+      return {
+        status: 'success',
+        data: result
+      };
     } catch (error) {
       this.loggingService.error(
         `Failed to create first admin user: ${error.message}`,
@@ -36,115 +39,86 @@ export class AdminController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   @Roles(Role.SUPER_ADMIN)
-  @UsePipes(new ValidationPipe({ transform: true }))
   async create(@Body() createAdminDto: CreateAdminDto) {
-    try {
-      this.loggingService.log(
-        `Attempting to create new admin user`,
-        'AdminController',
-        {
-          username: createAdminDto.username,
-          email: createAdminDto.email,
-          role: createAdminDto.role,
-          permissions: createAdminDto.permissions,
-          is_active: createAdminDto.is_active
-        }
-      );
-
-      const admin = await this.adminService.create(createAdminDto);
-      
-      this.loggingService.log(
-        `Successfully created admin user`,
-        'AdminController',
-        {
-          userId: admin.id,
-          username: admin.username,
-          role: admin.role
-        }
-      );
-
-      return admin;
-    } catch (error) {
-      this.loggingService.error(
-        `Failed to create admin user`,
-        error.stack,
-        'AdminController',
-        {
-          error: error.message,
-          requestData: createAdminDto,
-          validationErrors: error.response?.message
-        }
-      );
-
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-
-      throw new InternalServerErrorException({
-        message: 'Failed to create admin user',
-        error: error.message,
-        details: error.stack
-      });
-    }
+    const admin = await this.adminService.create(createAdminDto);
+    return {
+      status: 'success',
+      data: admin
+    };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
   @Roles(Role.SUPER_ADMIN)
   async findAll() {
-    return this.adminService.findAll();
+    const admins = await this.adminService.findAll();
+    return {
+      status: 'success',
+      data: admins
+    };
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get('profile')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
-  getProfile(@Request() req) {
-    console.log('GET /admin/profile hit');
-    this.loggingService.log(`Getting admin profile. User object: ${JSON.stringify(req.user)}`);
-    console.log('Profile endpoint user:', req.user);
-    return this.adminService.findOne(req.user.userId);
+  async getProfile(@Request() req) {
+    const admin = await this.adminService.findOne(req.user.id);
+    return {
+      status: 'success',
+      data: admin
+    };
   }
 
-  @Patch('profile')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
-  @UsePipes(new ValidationPipe({ transform: true }))
-  updateProfile(@Request() req, @Body() updateAdminDto: UpdateAdminDto) {
-    console.log('PATCH /admin/profile hit');
-    this.loggingService.log(`Updating admin profile. User object: ${JSON.stringify(req.user)}`);
-    console.log('Update profile endpoint user:', req.user);
-    return this.adminService.update(req.user.userId, updateAdminDto);
+  @Post('profile')
+  async updateProfile(@Request() req, @Body() updateAdminDto: UpdateAdminDto) {
+    const admin = await this.adminService.update(req.user.id, updateAdminDto);
+    return {
+      status: 'success',
+      data: admin
+    };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id')
   @Roles(Role.SUPER_ADMIN)
   async findOne(@Param('id') id: string) {
-    return this.adminService.findOne(id);
+    const admin = await this.adminService.findOne(id);
+    return {
+      status: 'success',
+      data: admin
+    };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Patch(':id')
+  @Post(':id')
   @Roles(Role.SUPER_ADMIN)
-  @UsePipes(new ValidationPipe({ transform: true }))
-  async update(
-    @Param('id') id: string,
-    @Body() updateAdminDto: UpdateAdminDto
-  ) {
-    return this.adminService.update(id, updateAdminDto);
+  async update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto) {
+    const admin = await this.adminService.update(id, updateAdminDto);
+    return {
+      status: 'success',
+      data: admin
+    };
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Post(':id/toggle-active')
+  @Roles(Role.SUPER_ADMIN)
+  async toggleActive(@Param('id') id: string) {
+    const admin = await this.adminService.toggleActive(id);
+    return {
+      status: 'success',
+      data: admin
+    };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
   @Roles(Role.SUPER_ADMIN)
   async remove(@Param('id') id: string) {
-    return this.adminService.remove(id);
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Patch(':id/toggle-active')
-  @Roles(Role.SUPER_ADMIN)
-  async toggleActive(@Param('id') id: string) {
-    return this.adminService.toggleActive(id);
+    await this.adminService.remove(id);
+    return {
+      status: 'success',
+      message: 'Admin user deleted successfully'
+    };
   }
 } 

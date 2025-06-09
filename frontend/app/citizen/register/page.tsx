@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
 import { useCitizenStore } from '@/lib/store/citizen.store';
 import { useNidaStore } from '@/lib/store/nida.store';
-import { Gender, MaritalStatus, EmploymentStatus } from '@/lib/api/citizen/types';
+import { Gender, MaritalStatus, EmploymentStatus } from '@/lib/api/citizen/enums';
 import { AdminRole } from '@/lib/api/admin/types';
+import { UserRole } from '@/lib/api/auth/types';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { citizenService } from '@/lib/api/citizen/service';
 import { nidaService } from '@/lib/api/nida/service';
@@ -107,7 +108,7 @@ export default function CitizenRegistrationPage() {
   };
 
   // Only REGISTRAR can access this page
-  if (!user || (user.role as string) !== 'REGISTRAR') {
+  if (!user || !user.functional_roles?.includes(UserRole.REGISTRAR)) {
     return (
       <DashboardLayout userType="admin">
         <div className="text-center py-12">

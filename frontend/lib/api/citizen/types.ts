@@ -1,31 +1,17 @@
 import { BaseEntity } from '../types';
+import { Gender, MaritalStatus, EmploymentStatus, RegistrationStatus } from './enums';
 
-export enum Gender {
-  MALE = 'male',
-  FEMALE = 'female',
-  OTHER = 'other'
-}
-
-export enum MaritalStatus {
-  SINGLE = 'single',
-  MARRIED = 'married',
-  DIVORCED = 'divorced',
-  WIDOWED = 'widowed'
-}
-
-export enum EmploymentStatus {
-  EMPLOYED = 'employed',
-  UNEMPLOYED = 'unemployed',
-  SELF_EMPLOYED = 'self_employed',
-  STUDENT = 'student',
-  RETIRED = 'retired'
-}
-
-export enum RegistrationStatus {
+export enum VerificationStatus {
   PENDING = 'PENDING',
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
   SUSPENDED = 'SUSPENDED'
+}
+
+export enum NidaVerificationStatus {
+  NOT_VERIFIED = 'NOT_VERIFIED',
+  VERIFIED = 'VERIFIED',
+  REJECTED = 'REJECTED'
 }
 
 export interface Address {
@@ -68,35 +54,39 @@ export interface NidaVerificationResult {
   };
 }
 
-export interface Citizen extends BaseEntity {
+export interface Citizen {
+  id: string;
   nida_number: string;
   first_name: string;
   last_name: string;
   middle_name?: string;
-  date_of_birth: Date;
+  date_of_birth: string;
   gender: Gender;
   nationality: string;
   email?: string;
-  phone_number?: string;
-  address: Address;
-  biometric_data?: BiometricData;
-  is_active: boolean;
-  verification_status?: VerificationStatus;
-  nida_verification_status?: NidaVerificationStatus;
+  phone_number: string;
+  address: {
+    street: string;
+    city: string;
+    region: string;
+    postal_code: string;
+  };
   other_names?: string;
   marital_status: MaritalStatus;
   occupation?: string;
   employer_name?: string;
-  dossier_number?: string;
   employment_status?: EmploymentStatus;
-  contact_details?: Record<string, any>;
-  registration_status: RegistrationStatus;
-  documents?: Record<string, any>;
-  rejection_reason?: string;
-  verification_data?: Record<string, any>;
   birth_certificate_number: string;
-  metadata?: Record<string, any>;
-  verification_status_history?: Record<string, any>;
+  registration_status: RegistrationStatus;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+  has_password: boolean;
+  password?: string;
+  rejection_reason?: string;
+  documents?: any;
+  biometric_data?: any;
+  verification_data?: any;
 }
 
 export interface CreateCitizenDto {

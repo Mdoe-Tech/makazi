@@ -63,6 +63,17 @@ export class QueryLoggerSubscriber implements EntitySubscriberInterface {
   }
 
   beforeRemove(event: RemoveEvent<any>) {
+    if (!event.entity) {
+      this.log('warn',
+        `Attempting to remove from ${event.metadata.tableName} without entity`,
+        'Database',
+        {
+          entity: event.metadata.name,
+        }
+      );
+      return;
+    }
+
     this.log('debug',
       `Removing from ${event.metadata.tableName}`,
       'Database',
@@ -74,6 +85,17 @@ export class QueryLoggerSubscriber implements EntitySubscriberInterface {
   }
 
   afterRemove(event: RemoveEvent<any>) {
+    if (!event.entity) {
+      this.log('warn',
+        `Removed from ${event.metadata.tableName} without entity`,
+        'Database',
+        {
+          entity: event.metadata.name,
+        }
+      );
+      return;
+    }
+
     this.log('debug',
       `Removed from ${event.metadata.tableName}`,
       'Database',

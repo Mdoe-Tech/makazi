@@ -1,5 +1,5 @@
-import { IsString, IsEmail, IsEnum, IsOptional, IsBoolean, MinLength, Matches } from 'class-validator';
-import { Role } from '../../auth/guards/roles.guard';
+import { IsString, IsEmail, IsEnum, IsOptional, IsBoolean, MinLength, Matches, IsArray } from 'class-validator';
+import { Role } from '../../auth/enums/role.enum';
 
 export class CreateAdminDto {
   @IsString()
@@ -27,9 +27,15 @@ export class CreateAdminDto {
   @Matches(/^\+255[0-9]{9}$/, { message: 'Phone number must start with +255 followed by 9 digits' })
   phone_number?: string;
 
-  @IsEnum(Role)
+  @IsArray()
+  @IsEnum(Role, { each: true })
   @IsOptional()
-  role?: Role;
+  roles?: Role[];
+
+  @IsArray()
+  @IsEnum(Role, { each: true })
+  @IsOptional()
+  functional_roles?: Role[];
 
   @IsBoolean()
   @IsOptional()
@@ -42,6 +48,9 @@ export class CreateAdminDto {
     can_view_audit_logs: boolean;
     can_manage_settings: boolean;
   };
+
+  @IsOptional()
+  metadata?: Record<string, any>;
 }
 
 export class UpdateAdminDto {
@@ -79,6 +88,11 @@ export class UpdateAdminDto {
   @IsOptional()
   role?: Role;
 
+  @IsArray()
+  @IsEnum(Role, { each: true })
+  @IsOptional()
+  roles?: Role[];
+
   @IsBoolean()
   @IsOptional()
   is_active?: boolean;
@@ -90,4 +104,9 @@ export class UpdateAdminDto {
     can_view_audit_logs: boolean;
     can_manage_settings: boolean;
   };
+
+  @IsArray()
+  @IsEnum(Role, { each: true })
+  @IsOptional()
+  functional_roles?: Role[];
 } 

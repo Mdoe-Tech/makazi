@@ -2,12 +2,12 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { adminService } from '../api/admin/service';
 import { PaginationParams } from '../api/types';
-import { User } from '../api/auth/types';
+import { Admin } from '../api/admin/types';
 import { UserFilters, CreateUserDto, UpdateUserDto } from '../api/admin/types';
 
 interface AdminState {
-  users: User[];
-  selectedUser: User | null;
+  users: Admin[];
+  selectedUser: Admin | null;
   total: number;
   loading: boolean;
   error: string | null;
@@ -16,7 +16,7 @@ interface AdminState {
   // Actions
   setFilters: (filters: UserFilters) => void;
   setPagination: (pagination: PaginationParams) => void;
-  setSelectedUser: (user: User | null) => void;
+  setSelectedUser: (user: Admin | null) => void;
   fetchUsers: () => Promise<void>;
   fetchUserById: (id: string) => Promise<void>;
   createUser: (data: CreateUserDto) => Promise<void>;
@@ -56,8 +56,8 @@ export const useAdminStore = create<AdminState>()(
             const { filters, pagination } = get();
             const response = await adminService.getUsers({ ...filters, ...pagination });
             set({ 
-              users: response.data,
-              total: response.total,
+              users: response.data.data,
+              total: response.data.total || response.data.data.length,
               loading: false 
             });
           } catch (error) {
@@ -71,9 +71,9 @@ export const useAdminStore = create<AdminState>()(
         fetchUserById: async (id) => {
           try {
             set({ loading: true, error: null });
-            const response = await adminService.getUserById(id);
+            const response = await adminService.getUser(id);
             set({ 
-              selectedUser: response.data,
+              selectedUser: response,
               loading: false 
             });
           } catch (error) {

@@ -4,7 +4,10 @@ export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN = 'ADMIN',
   USER = 'USER',
-  VIEWER = 'VIEWER'
+  VIEWER = 'VIEWER',
+  REGISTRAR = 'REGISTRAR',
+  VERIFIER = 'VERIFIER',
+  APPROVER = 'APPROVER'
 }
 
 export interface User extends BaseEntity {
@@ -13,6 +16,8 @@ export interface User extends BaseEntity {
   first_name: string;
   last_name: string;
   role: UserRole;
+  roles: UserRole[];
+  functional_roles: UserRole[];
   is_active: boolean;
   last_login?: Date;
   permissions: string[];

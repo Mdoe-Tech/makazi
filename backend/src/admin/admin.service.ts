@@ -3,7 +3,7 @@ import { CreateAdminDto, UpdateAdminDto } from './dto/create-admin.dto';
 import { LoggingService } from '../logging/logging.service';
 import * as bcrypt from 'bcrypt';
 import * as swMessages from '../i18n/sw/sw.json';
-import { Role } from '../auth/guards/roles.guard';
+import { Role } from '../auth/enums/role.enum';
 import { AdminRepository } from './admin.repository';
 
 @Injectable()
@@ -29,9 +29,12 @@ export class AdminService {
     this.loggingService.log('Creating first admin with SUPER_ADMIN role');
     // Create the first admin with SUPER_ADMIN role
     const admin = await this.adminRepository.create({
-      ...createAdminDto,
+      username: createAdminDto.username,
       password: hashedPassword,
-      role: Role.SUPER_ADMIN
+      first_name: createAdminDto.first_name,
+      last_name: createAdminDto.last_name,
+      email: createAdminDto.email,
+      functional_roles: [Role.SUPER_ADMIN]
     });
 
     this.loggingService.log(`First admin created successfully with ID: ${admin.id}`);
@@ -56,49 +59,20 @@ export class AdminService {
 
     const admin = await this.adminRepository.create({
       ...createAdminDto,
-      password: hashedPassword
+      password: hashedPassword,
+      roles: createAdminDto.roles || createAdminDto.functional_roles
     });
 
     return admin;
   }
 
-  async findAll() {
-    return this.adminRepository.findAll();
-  }
-
-  async findOne(id: string) {
-    const admin = await this.adminRepository.findOne(id);
-    if (!admin) {
-      throw new NotFoundException(swMessages.admin.not_found);
-    }
-    return admin;
-  }
-
-  async findByUsername(username: string) {
-    const admin = await this.adminRepository.findByUsername(username);
-    if (!admin) {
-      throw new NotFoundException(swMessages.admin.not_found);
-    }
-    return admin;
-  }
-
   async update(id: string, updateAdminDto: UpdateAdminDto) {
-    const admin = await this.findOne(id);
-
-    // If updating username or email, check for duplicates
-    if (updateAdminDto.username || updateAdminDto.email) {
-      const existingAdmin = await Promise.all([
-        updateAdminDto.username ? this.adminRepository.findByUsername(updateAdminDto.username) : null,
-        updateAdminDto.email ? this.adminRepository.findByEmail(updateAdminDto.email) : null
-      ]);
-
-      if ((existingAdmin[0] && existingAdmin[0].id !== id) || 
-          (existingAdmin[1] && existingAdmin[1].id !== id)) {
-        throw new BadRequestException(swMessages.admin.username_or_email_exists);
-      }
+    const admin = await this.adminRepository.findById(id);
+    if (!admin) {
+      throw new NotFoundException(`Admin with ID ${id} not found`);
     }
 
-    // If updating password, hash it
+    // Hash password if provided
     if (updateAdminDto.password) {
       updateAdminDto.password = await bcrypt.hash(updateAdminDto.password, 10);
     }
@@ -106,11 +80,54 @@ export class AdminService {
     return this.adminRepository.update(id, updateAdminDto);
   }
 
+  async findAll() {
+    return this.adminRepository.findAll();
+  }
+
+  async findOne(id: string) {
+    const admin = await this.adminRepository.findById(id);
+    if (!admin) {
+      throw new NotFoundException(`Admin with ID ${id} not found`);
+    }
+    return admin;
+  }
+
+  async findByUsername(username: string) {
+    const admin = await this.adminRepository.findByUsername(username);
+    if (!admin) {
+      throw new NotFoundException(`Admin with username ${username} not found`);
+    }
+    
+    // Map functional roles to roles array
+    const roles = admin.functional_roles?.map(role => role.role) || [];
+    return {
+      ...admin,
+      roles,
+      functional_roles: roles,
+      role: admin.role || Role.ADMIN
+    };
+  }
+
+  async findByEmail(email: string) {
+    const admin = await this.adminRepository.findByEmail(email);
+    if (!admin) {
+      throw new NotFoundException(`Admin with email ${email} not found`);
+    }
+    return admin;
+  }
+
   async remove(id: string) {
-    // Check if admin exists before deleting
-    await this.findOne(id);
-    await this.adminRepository.remove(id);
-    return { message: 'Admin deleted successfully' };
+    try {
+      await this.adminRepository.remove(id);
+      this.loggingService.log(`Admin user ${id} deleted successfully`, 'Admin');
+    } catch (error) {
+      this.loggingService.error(`Error deleting admin user ${id}: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  async verifyPassword(admin: any, password: string) {
+    return bcrypt.compare(password, admin.password);
   }
 
   async updateLastLogin(id: string, ipAddress: string, userAgent: string) {

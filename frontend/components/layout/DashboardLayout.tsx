@@ -24,13 +24,15 @@ import {
 } from 'lucide-react';
 import { colors } from '@/lib/theme/colors';
 import { Avatar } from '@/components/ui/avatar';
+import { UserRole } from '@/lib/api/auth/types';
+import Link from 'next/link';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
   userType: 'admin' | 'citizen';
 }
 
-type AdminRole = 'SUPER_ADMIN' | 'REGIONAL_ADMIN' | 'DISTRICT_ADMIN' | 'WARD_ADMIN' | 'OFFICE_ADMIN' | 'REGISTRAR' | 'VERIFIER' | 'APPROVER' | 'VIEWER';
+type AdminRole = 'SUPER_ADMIN' | 'ADMIN' | 'REGISTRAR' | 'VERIFIER' | 'APPROVER' | 'VIEWER';
 
 export default function DashboardLayout({ children, userType }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -57,6 +59,9 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
   }, [initialized, initialize]);
 
   useEffect(() => {
+    if (initialized && !loading && !user) {
+      router.push('/admin/login');
+    }
     if (initialized && !loading && !user && !pathname.includes('/login')) {
       if (userType === 'admin') {
         router.push('/admin/login');
@@ -91,53 +96,54 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
   const getRoleBasedNavigation = (userRole: AdminRole) => {
     const baseNavigation = [
       { name: 'Dashboard', href: '/admin', icon: Home },
+      { name: 'Citizens', href: '/admin/citizens', icon: Users },
     ];
 
-    const rolePermissions: Record<AdminRole, typeof baseNavigation> = {
-      SUPER_ADMIN: [
+    // Get functional roles from user
+    const functionalRoles = user?.roles || [];
+
+    const navigationItems = [];
+
+    // Add items based on functional roles
+    if (functionalRoles.includes(UserRole.REGISTRAR)) {
+      navigationItems.push(
+        { name: 'Register Citizen', href: '/citizen/register', icon: Plus },
+        { name: 'Register NIDA', href: '/nida/register', icon: Plus }
+      );
+    }
+
+    if (functionalRoles.includes(UserRole.VERIFIER)) {
+      navigationItems.push(
+        { name: 'Verify Documents', href: '/admin/documents/verify', icon: FileText }
+      );
+    }
+
+    if (functionalRoles.includes(UserRole.APPROVER)) {
+      navigationItems.push(
+        { name: 'Approve Documents', href: '/admin/documents/approve', icon: FileText }
+      );
+    }
+
+    if (functionalRoles.includes(UserRole.VIEWER)) {
+      navigationItems.push(
+        { name: 'View Documents', href: '/admin/documents', icon: FileText }
+      );
+    }
+
+    // SUPER_ADMIN gets all permissions
+    if (userRole === UserRole.SUPER_ADMIN) {
+      navigationItems.push(
         { name: 'Users', href: '/admin/users', icon: Users },
-        { name: 'Citizens', href: '/admin/citizens', icon: Users },
         { name: 'Documents', href: '/admin/documents', icon: FileText },
         { name: 'Reports', href: '/admin/reports', icon: BarChart },
         { name: 'Audit Logs', href: '/admin/audit', icon: Shield },
         { name: 'Settings', href: '/admin/settings', icon: Settings },
-      ],
-      REGIONAL_ADMIN: [
-        { name: 'Citizens', href: '/admin/citizens', icon: Users },
-        { name: 'Documents', href: '/admin/documents', icon: FileText },
-        { name: 'Reports', href: '/admin/reports', icon: BarChart },
-      ],
-      DISTRICT_ADMIN: [
-        { name: 'Citizens', href: '/admin/citizens', icon: Users },
-        { name: 'Documents', href: '/admin/documents', icon: FileText },
-      ],
-      WARD_ADMIN: [
-        { name: 'Citizens', href: '/admin/citizens', icon: Users },
-        { name: 'Documents', href: '/admin/documents', icon: FileText },
-      ],
-      OFFICE_ADMIN: [
-        { name: 'Citizens', href: '/admin/citizens', icon: Users },
-        { name: 'Documents', href: '/admin/documents', icon: FileText },
-      ],
-      REGISTRAR: [
-        { name: 'Citizens', href: '/admin/citizens', icon: Users },
         { name: 'Register Citizen', href: '/citizen/register', icon: Plus },
-        { name: 'Register NIDA', href: '/nida/register', icon: Plus },
-        { name: 'Documents', href: '/admin/documents', icon: FileText },
-      ],
-      VERIFIER: [
-        { name: 'Documents', href: '/admin/documents', icon: FileText },
-      ],
-      APPROVER: [
-        { name: 'Documents', href: '/admin/documents', icon: FileText },
-      ],
-      VIEWER: [
-        { name: 'Citizens', href: '/admin/citizens', icon: Users },
-        { name: 'Documents', href: '/admin/documents', icon: FileText },
-      ],
-    };
+        { name: 'Register NIDA', href: '/nida/register', icon: Plus }
+      );
+    }
 
-    return [...baseNavigation, ...(rolePermissions[userRole] || [])];
+    return [...baseNavigation, ...navigationItems];
   };
 
   const getCitizenNavigation = () => [
@@ -194,10 +200,10 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
           {/* Main Navigation */}
           <nav className="flex-1 px-2 py-3 space-y-1.5 overflow-y-auto">
             {navigation.map((item) => (
-              <a
+              <button
                 key={item.name}
-                href={item.href}
-                className={`flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
+                onClick={() => router.push(item.href)}
+                className={`w-full flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
                   isActive(item.href)
                     ? 'bg-primary-main/10 text-primary-main dark:bg-primary-main/20'
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
@@ -219,7 +225,7 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
                 {isActive(item.href) && (
                   <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary-main rounded-r-full" />
                 )}
-              </a>
+              </button>
             ))}
           </nav>
 
@@ -325,4 +331,4 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
       </div>
     </div>
   );
-} 
+}

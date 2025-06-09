@@ -60,7 +60,7 @@ export class IntegrationController {
   }
 
   @Post('sms/send')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async sendSms(
     @Body() body: {
       phone_number: string;
@@ -72,7 +72,7 @@ export class IntegrationController {
   }
 
   @Post('email/send')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async sendEmail(
     @Body() body: {
       to: string;

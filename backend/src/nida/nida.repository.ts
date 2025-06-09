@@ -184,19 +184,23 @@ export class NidaRepository {
 
     // Format dates to YYYY-MM-DD for comparison
     const formatDate = (date: string | Date) => {
-      if (date instanceof Date) {
-        return date.toISOString().split('T')[0];
-      }
-      // Handle different date formats
-      const dateObj = new Date(date);
-      if (isNaN(dateObj.getTime())) {
-        return date.split('T')[0]; // If parsing fails, try to split on T
-      }
-      return dateObj.toISOString().split('T')[0];
+      if (!date) return '';
+      const dateObj = date instanceof Date ? date : new Date(date);
+      // Use local date to avoid timezone issues
+      return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
     };
 
     const nidaDate = formatDate(nida.date_of_birth);
     const verifyDate = formatDate(data.date_of_birth);
+
+    console.log('Comparing dates:', { 
+      nidaDate, 
+      verifyDate, 
+      nidaDateOfBirth: nida.date_of_birth, 
+      verifyDateOfBirth: data.date_of_birth,
+      nidaDateObj: new Date(nida.date_of_birth),
+      verifyDateObj: new Date(data.date_of_birth)
+    });
 
     // Compare provided data with stored NIDA record (case-insensitive)
     const mismatches = [];

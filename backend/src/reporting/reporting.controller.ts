@@ -7,7 +7,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 import { LoggingService } from '../logging/logging.service';
 
-@Controller('reports')
+@Controller('reporting')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ReportingController {
   constructor(
@@ -16,7 +16,7 @@ export class ReportingController {
   ) {}
 
   @Post('generate')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async generateReport(
     @Body() body: {
       type: ReportType;
@@ -35,19 +35,19 @@ export class ReportingController {
   }
 
   @Get()
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async findAll() {
     return this.reportingService.findAll();
   }
 
   @Get(':id')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async findOne(@Param('id') id: number) {
     return this.reportingService.findOne(id.toString());
   }
 
   @Get('type/:type')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async findByType(@Param('type') type: ReportType) {
     return this.reportingService.findByType(type);
   }

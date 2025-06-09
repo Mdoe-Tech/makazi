@@ -50,21 +50,21 @@ export class DocumentController {
   }
 
   @Get()
-  @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER)
+  @Roles(Role.ADMIN, Role.REGISTRAR, Role.VERIFIER)
   async findAll() {
     this.loggingService.log('Fetching all documents');
     return this.documentService.findAll();
   }
 
   @Get(':id')
-  @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER)
+  @Roles(Role.ADMIN, Role.REGISTRAR, Role.VERIFIER)
   async findOne(@Param('id') id: number) {
     this.loggingService.log(`Fetching document ${id}`);
     return this.documentService.findOne(id.toString());
   }
 
   @Get('citizen/:id')
-  @Roles(Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER)
+  @Roles(Role.ADMIN, Role.REGISTRAR, Role.VERIFIER)
   async findByCitizenId(@Param('id') citizenId: number) {
     this.loggingService.log(
       `Fetching documents for citizen ${citizenId}`,
@@ -72,7 +72,7 @@ export class DocumentController {
       {
         action: 'findByCitizenId',
         citizenId,
-        roles: [Role.OFFICE_ADMIN, Role.REGISTRAR, Role.VERIFIER]
+        roles: [Role.ADMIN, Role.REGISTRAR, Role.VERIFIER]
       }
     );
     return this.documentService.findByCitizenId(citizenId.toString());
@@ -103,7 +103,7 @@ export class DocumentController {
   }
 
   @Delete(':id')
-  @Roles(Role.OFFICE_ADMIN)
+  @Roles(Role.ADMIN)
   async remove(@Param('id') id: number) {
     this.loggingService.log(`Deleting document ${id}`);
     return this.documentService.remove(id.toString());

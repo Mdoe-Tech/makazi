@@ -16,13 +16,13 @@ export class AuditController {
   ) {}
 
   @Get()
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async findAll() {
     return this.auditService.findAll();
   }
 
   @Get('entity/:entity/:id')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async findByEntity(
     @Param('entity') entity: AuditEntity,
     @Param('id') id: number
@@ -31,19 +31,19 @@ export class AuditController {
   }
 
   @Get('user/:id')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async findByUser(@Param('id') id: number) {
     return this.auditService.findByUser(id.toString());
   }
 
   @Get('action/:action')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async findByAction(@Param('action') action: AuditAction) {
     return this.auditService.findByAction(action);
   }
 
   @Get('date-range')
-  @Roles(Role.OFFICE_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async findByDateRange(
     @Query('start_date') startDate: string,
     @Query('end_date') endDate: string
@@ -55,7 +55,7 @@ export class AuditController {
   }
 
   @Post('compliance-report')
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   async generateComplianceReport(
     @Body() body: { start_date: string; end_date: string }
   ) {

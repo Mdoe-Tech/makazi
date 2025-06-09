@@ -6,6 +6,7 @@ import { useAuthStore } from '@/lib/store/auth.store';
 import { useNidaStore } from '@/lib/store/nida.store';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Gender, MaritalStatus, EmploymentStatus, CitizenshipType, NidaData } from '@/lib/api/nida/types';
+import { UserRole } from '@/lib/api/auth/types';
 
 type FormData = {
   first_name: string;
@@ -178,7 +179,7 @@ export default function NidaRegistrationPage() {
   const totalSteps = 4;
 
   // Only REGISTRAR can access this page
-  if (!user || (user.role as string) !== 'REGISTRAR') {
+  if (!user || !user.functional_roles?.includes(UserRole.REGISTRAR)) {
     return (
       <DashboardLayout userType="admin">
         <div className="text-center py-12">
