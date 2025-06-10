@@ -2,119 +2,260 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/store/auth.store';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { citizenService } from '@/lib/api/citizen/service';
+import { documentService } from '@/lib/api/documents/service';
+import { DocumentStatus } from '@/lib/api/documents/types';
+import { RegistrationStatus } from '@/lib/api/citizen/enums';
 import { 
   Users, 
   FileText, 
+  Clock, 
   CheckCircle, 
-  Clock 
+  XCircle, 
+  AlertCircle,
+  UserPlus,
+  FileCheck,
+  FileX
 } from 'lucide-react';
-import { colors } from '@/lib/theme/colors';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 
-interface StatCard {
-  title: string;
-  value: number;
-  icon: any;
-  change: number;
-  color: string;
+interface DashboardStats {
+  totalCitizens: number;
+  pendingRegistrations: number;
+  totalDocuments: number;
+  pendingDocuments: number;
+  approvedDocuments: number;
+  rejectedDocuments: number;
+  recentCitizens: any[];
+  recentDocuments: any[];
 }
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { user, loading } = useAuthStore();
-  const [isClient, setIsClient] = useState(false);
+  const [stats, setStats] = useState<DashboardStats>({
+    totalCitizens: 0,
+    pendingRegistrations: 0,
+    totalDocuments: 0,
+    pendingDocuments: 0,
+    approvedDocuments: 0,
+    rejectedDocuments: 0,
+    recentCitizens: [],
+    recentDocuments: []
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setIsClient(true);
+    fetchDashboardData();
   }, []);
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/admin/login');
-    }
-  }, [user, loading, router]);
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch citizens
+      const citizens = await citizenService.getCitizens();
+      const pendingRegistrations = citizens.filter(
+        c => c.registration_status === RegistrationStatus.PENDING
+      ).length;
 
-  const [stats] = useState<StatCard[]>([
-    {
-      title: 'Total Citizens',
-      value: 0,
-      icon: Users,
-      change: 0,
-      color: colors.primary.main
-    },
-    {
-      title: 'Pending Documents',
-      value: 0,
-      icon: FileText,
-      change: 0,
-      color: colors.warning.main
-    },
-    {
-      title: 'Verified Citizens',
-      value: 0,
-      icon: CheckCircle,
-      change: 0,
-      color: colors.success.main
-    },
-    {
-      title: 'Processing Time',
-      value: 0,
-      icon: Clock,
-      change: 0,
-      color: colors.accent.main
-    }
-  ]);
+      // Fetch documents
+      const documents = await documentService.getDocumentRequests();
+      const pendingDocuments = documents.filter(
+        d => d.status === DocumentStatus.PENDING
+      ).length;
+      const approvedDocuments = documents.filter(
+        d => d.status === DocumentStatus.APPROVED
+      ).length;
+      const rejectedDocuments = documents.filter(
+        d => d.status === DocumentStatus.REJECTED
+      ).length;
 
-  if (!isClient || loading || !user) {
+      // Get recent citizens (last 5)
+      const recentCitizens = citizens
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5);
+
+      // Get recent documents (last 5)
+      const recentDocuments = documents
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5);
+
+      setStats({
+        totalCitizens: citizens.length,
+        pendingRegistrations,
+        totalDocuments: documents.length,
+        pendingDocuments,
+        approvedDocuments,
+        rejectedDocuments,
+        recentCitizens,
+        recentDocuments
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-      </div>
+      <DashboardLayout userType="admin">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-main"></div>
+        </div>
+      </DashboardLayout>
     );
-  }
-
-  if (user.role === 'CITIZEN') {
-    return null;
   }
 
   return (
     <DashboardLayout userType="admin">
-      <div className="space-y-6">
+      <div className="container mx-auto py-8">
+        <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <div
-              key={stat.title}
-              className="bg-white rounded-lg shadow-sm p-6"
-            >
-              <div className="flex items-center">
-                <div
-                  className="p-3 rounded-full"
-                  style={{ backgroundColor: `${stat.color}20` }}
-                >
-                  <stat.icon
-                    className="w-6 h-6"
-                    style={{ color: stat.color }}
-                  />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">{stat.title}</p>
-                  <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Total Citizens */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Total Citizens</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalCitizens}</div>
+              <p className="text-xs text-muted-foreground">
+                {stats.pendingRegistrations} pending registrations
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Total Documents */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalDocuments}</div>
+              <p className="text-xs text-muted-foreground">
+                {stats.pendingDocuments} pending approval
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Approved Documents */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Approved Documents</CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.approvedDocuments}</div>
+              <p className="text-xs text-muted-foreground">
+                Successfully processed
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Rejected Documents */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Rejected Documents</CardTitle>
+              <XCircle className="h-4 w-4 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.rejectedDocuments}</div>
+              <p className="text-xs text-muted-foreground">
+                Failed to meet requirements
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6">
-            <h2 className="text-lg font-medium text-gray-900">Recent Activity</h2>
-            <div className="mt-6">
-              <p className="text-sm text-gray-500 text-center py-4">No recent activity found</p>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Recent Citizens */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserPlus className="h-5 w-5" />
+                Recent Citizens
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {stats.recentCitizens.map((citizen) => (
+                  <div
+                    key={citizen.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent cursor-pointer"
+                    onClick={() => router.push(`/admin/citizens/${citizen.id}`)}
+                  >
+                    <div>
+                      <p className="font-medium">
+                        {citizen.first_name} {citizen.last_name}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        NIDA: {citizen.nida_number}
+                      </p>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={
+                        citizen.registration_status === RegistrationStatus.APPROVED
+                          ? 'border-green-500 text-green-500'
+                          : citizen.registration_status === RegistrationStatus.REJECTED
+                          ? 'border-red-500 text-red-500'
+                          : 'border-yellow-500 text-yellow-500'
+                      }
+                    >
+                      {citizen.registration_status}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recent Documents */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Recent Documents
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {stats.recentDocuments.map((document) => (
+                  <div
+                    key={document.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent cursor-pointer"
+                    onClick={() => router.push(`/admin/documents/${document.id}`)}
+                  >
+                    <div>
+                      <p className="font-medium">{document.document_type}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Requested by: {document.citizen.first_name} {document.citizen.last_name}
+                      </p>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={
+                        document.status === DocumentStatus.APPROVED
+                          ? 'border-green-500 text-green-500'
+                          : document.status === DocumentStatus.REJECTED
+                          ? 'border-red-500 text-red-500'
+                          : 'border-yellow-500 text-yellow-500'
+                      }
+                    >
+                      {document.status}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </DashboardLayout>

@@ -13,6 +13,7 @@ import { generateDocumentPDF } from '@/lib/utils/pdfGenerator';
 import SignaturePad from '@/components/signature/SignaturePad';
 import StampCreator from '@/components/stamp/StampCreator';
 import { Loader2, FileText, Check, X } from 'lucide-react';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 
 export default function ApproveDocumentsPage() {
   const router = useRouter();
@@ -53,8 +54,8 @@ export default function ApproveDocumentsPage() {
         template, 
         request, 
         request.citizen,
-        signatureData,
-        stampData
+        signatureData || undefined,
+        stampData || undefined
       );
       setPdfUrl(url);
     } catch (error) {
@@ -93,7 +94,7 @@ export default function ApproveDocumentsPage() {
     if (!selectedRequest) return;
 
     try {
-      await documentService.rejectDocumentRequest(selectedRequest.id);
+      await documentService.rejectDocumentRequest(selectedRequest.id, 'Rejected by admin');
       toast.success('Document rejected successfully');
       fetchRequests();
       setSelectedRequest(null);
@@ -122,142 +123,146 @@ export default function ApproveDocumentsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
+      <DashboardLayout userType="admin">
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">Approve Documents</h1>
+    <DashboardLayout userType="admin">
+      <div className="container mx-auto py-8">
+        <h1 className="text-2xl font-bold mb-6">Approve Documents</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Document Requests List */}
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Pending Documents</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {requests.length === 0 ? (
-                <p className="text-muted-foreground">No documents pending approval</p>
-              ) : (
-                <div className="space-y-4">
-                  {requests.map((request) => (
-                    <div
-                      key={request.id}
-                      className={`p-4 border rounded-lg cursor-pointer hover:bg-accent ${
-                        selectedRequest?.id === request.id ? 'bg-accent' : ''
-                      }`}
-                      onClick={() => handleViewDocument(request)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-primary" />
-                            <h3 className="font-medium">{request.document_type}</h3>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            Requested by: {request.citizen.full_name}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            NIDA: {request.citizen.nida_number}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Purpose: {request.purpose}
-                          </p>
-                        </div>
-                        <Badge 
-                          variant="outline" 
-                          className={request.status === DocumentStatus.PENDING ? 'border-yellow-500 text-yellow-500' : ''}
-                        >
-                          {request.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Document Preview and Approval */}
-        <div className="space-y-6">
-          {selectedRequest ? (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Document Preview</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingDocument ? (
-                    <div className="flex items-center justify-center h-[600px] border rounded-lg">
-                      <Loader2 className="w-8 h-8 animate-spin" />
-                    </div>
-                  ) : pdfUrl ? (
-                    <iframe
-                      src={pdfUrl}
-                      className="w-full h-[600px] border rounded-lg"
-                      title="Document Preview"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-[600px] border rounded-lg text-muted-foreground">
-                      Failed to load document preview
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Add Signature and Stamp</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div>
-                    <h3 className="font-medium mb-4">Digital Signature</h3>
-                    <SignaturePad onSignatureCreated={handleSignatureSave} />
-                  </div>
-
-                  <Separator />
-
-                  <div>
-                    <h3 className="font-medium mb-4">Official Stamp</h3>
-                    <StampCreator onStampCreated={handleStampSave} />
-                  </div>
-
-                  <div className="flex gap-4 pt-4">
-                    <Button
-                      variant="outline"
-                      onClick={handleReject}
-                      className="flex items-center gap-2"
-                    >
-                      <X className="w-4 h-4" />
-                      Reject
-                    </Button>
-                    <Button
-                      onClick={handleApprove}
-                      className="flex items-center gap-2"
-                      disabled={!signatureData || !stampData}
-                    >
-                      <Check className="w-4 h-4" />
-                      Approve
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Document Requests List */}
+          <div>
             <Card>
-              <CardContent className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
-                <FileText className="w-12 h-12 mb-4" />
-                <p>Select a document to preview and approve</p>
+              <CardHeader>
+                <CardTitle>Pending Documents</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {requests.length === 0 ? (
+                  <p className="text-muted-foreground">No documents pending approval</p>
+                ) : (
+                  <div className="space-y-4">
+                    {requests.map((request) => (
+                      <div
+                        key={request.id}
+                        className={`p-4 border rounded-lg cursor-pointer hover:bg-accent ${
+                          selectedRequest?.id === request.id ? 'bg-accent' : ''
+                        }`}
+                        onClick={() => handleViewDocument(request)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-primary" />
+                              <h3 className="font-medium">{request.document_type}</h3>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              Requested by: {request.citizen.first_name} {request.citizen.last_name}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              NIDA: {request.citizen.nida_number}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Purpose: {request.purpose}
+                            </p>
+                          </div>
+                          <Badge 
+                            variant="outline" 
+                            className={request.status === DocumentStatus.PENDING ? 'border-yellow-500 text-yellow-500' : ''}
+                          >
+                            {request.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
-          )}
+          </div>
+
+          {/* Document Preview and Approval */}
+          <div className="space-y-6">
+            {selectedRequest ? (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Document Preview</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingDocument ? (
+                      <div className="flex items-center justify-center h-[600px] border rounded-lg">
+                        <Loader2 className="w-8 h-8 animate-spin" />
+                      </div>
+                    ) : pdfUrl ? (
+                      <iframe
+                        src={pdfUrl}
+                        className="w-full h-[600px] border rounded-lg"
+                        title="Document Preview"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-[600px] border rounded-lg text-muted-foreground">
+                        Failed to load document preview
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Add Signature and Stamp</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <h3 className="font-medium mb-4">Digital Signature</h3>
+                      <SignaturePad onSignatureCreated={handleSignatureSave} />
+                    </div>
+
+                    <Separator />
+
+                    <div>
+                      <h3 className="font-medium mb-4">Official Stamp</h3>
+                      <StampCreator onStampCreated={handleStampSave} />
+                    </div>
+
+                    <div className="flex gap-4 pt-4">
+                      <Button
+                        variant="outline"
+                        onClick={handleReject}
+                        className="flex items-center gap-2"
+                      >
+                        <X className="w-4 h-4" />
+                        Reject
+                      </Button>
+                      <Button
+                        onClick={handleApprove}
+                        className="flex items-center gap-2"
+                        disabled={!signatureData || !stampData}
+                      >
+                        <Check className="w-4 h-4" />
+                        Approve
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
+                  <FileText className="w-12 h-12 mb-4" />
+                  <p>Select a document to preview and approve</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 } 

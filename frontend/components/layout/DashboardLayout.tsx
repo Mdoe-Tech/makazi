@@ -246,32 +246,18 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
           {/* Main Navigation */}
           <nav className="flex-1 px-2 py-3 space-y-1.5 overflow-y-auto">
             {navigation.map((item) => (
-              <button
+              <Link
                 key={item.title}
-                onClick={() => router.push(item.href)}
-                className={`w-full flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
+                href={item.href}
+                className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                   isActive(item.href)
-                    ? 'bg-primary-main/10 text-primary-main dark:bg-primary-main/20'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+                    ? 'bg-primary-main/10 text-primary-main'
+                    : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'
                 }`}
               >
-                <div className={`absolute inset-0 rounded-lg transition-opacity duration-200 ${
-                  isActive(item.href)
-                    ? 'bg-gradient-to-r from-primary-main/5 to-primary-main/10 dark:from-primary-main/10 dark:to-primary-main/20'
-                    : 'group-hover:bg-gradient-to-r group-hover:from-primary-main/5 group-hover:to-primary-main/10 dark:group-hover:from-primary-main/10 dark:group-hover:to-primary-main/20'
-                }`} />
-                <item.icon className={`w-4.5 h-4.5 transition-transform duration-200 ${
-                  isActive(item.href)
-                    ? 'text-primary-main'
-                    : 'text-gray-500 dark:text-gray-400 group-hover:text-primary-main'
-                }`} />
-                {!isCompact && (
-                  <span className="ml-3 font-medium text-sm">{item.title}</span>
-                )}
-                {isActive(item.href) && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary-main rounded-r-full" />
-                )}
-              </button>
+                <item.icon className={`w-5 h-5 ${isCompact ? 'mx-auto' : 'mr-3'}`} />
+                {!isCompact && <span>{item.title}</span>}
+              </Link>
             ))}
           </nav>
 
@@ -329,7 +315,7 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
               {isCompact ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
             </button>
             <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-              {userType === 'admin' ? 'Jopo la Usimamizi' : 'Jopo la Mwananchi'}
+              {userType === 'admin' ? 'Admin Dashboard' : 'Citizen Dashboard'}
             </h1>
           </div>
 
