@@ -53,7 +53,8 @@ export const useAuthStore = create<AuthState>()(
                   is_active: true,
                   permissions: tokenPayload.permissions || [],
                   created_at: tokenPayload.created_at || new Date().toISOString(),
-                  updated_at: tokenPayload.updated_at || new Date().toISOString()
+                  updated_at: tokenPayload.updated_at || new Date().toISOString(),
+                  citizen_id: tokenPayload.citizen_id || null
                 }
               });
             } catch (error) {
@@ -136,7 +137,8 @@ export const useAuthStore = create<AuthState>()(
                   is_active: adminUser.is_active || true,
                   permissions: adminUser.permissions || tokenPayload.permissions || [],
                   created_at: adminUser.created_at || new Date().toISOString(),
-                  updated_at: adminUser.updated_at || new Date().toISOString()
+                  updated_at: adminUser.updated_at || new Date().toISOString(),
+                  citizen_id: tokenPayload.citizen_id || null
                 };
                 console.log('Setting admin data:', adminData);
                 set({

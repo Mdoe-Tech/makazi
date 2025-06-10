@@ -7,7 +7,9 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { documentService } from '@/lib/api/documents/service';
 import type { DocumentTemplate, DocumentRequest } from '@/lib/api/documents/types';
 import { DocumentType, DocumentStatus } from '@/lib/api/documents/types';
-import { FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { FileText, Clock, CheckCircle, XCircle, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 export default function CitizenDashboardPage() {
   const router = useRouter();
@@ -17,6 +19,7 @@ export default function CitizenDashboardPage() {
   const [requests, setRequests] = useState<DocumentRequest[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(true);
   const [loadingRequests, setLoadingRequests] = useState(true);
+  const [downloading, setDownloading] = useState<string | null>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -39,6 +42,7 @@ export default function CitizenDashboardPage() {
         setRequests(requestsData);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        toast.error('Failed to fetch dashboard data');
       } finally {
         setLoadingTemplates(false);
         setLoadingRequests(false);
@@ -50,14 +54,27 @@ export default function CitizenDashboardPage() {
     }
   }, [user]);
 
+  const handleDownload = async (requestId: string) => {
+    try {
+      setDownloading(requestId);
+      await documentService.downloadDocument(requestId);
+      toast.success('Document downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      toast.error('Failed to download document');
+    } finally {
+      setDownloading(null);
+    }
+  };
+
   const getStatusColor = (status: DocumentStatus) => {
     switch (status) {
       case DocumentStatus.APPROVED:
         return 'text-green-600 bg-green-50';
       case DocumentStatus.REJECTED:
         return 'text-red-600 bg-red-50';
-      case DocumentStatus.PROCESSING:
-        return 'text-blue-600 bg-blue-50';
+      case DocumentStatus.PENDING:
+        return 'text-yellow-600 bg-yellow-50';
       default:
         return 'text-yellow-600 bg-yellow-50';
     }
@@ -69,7 +86,7 @@ export default function CitizenDashboardPage() {
         return <CheckCircle className="w-5 h-5" />;
       case DocumentStatus.REJECTED:
         return <XCircle className="w-5 h-5" />;
-      case DocumentStatus.PROCESSING:
+      case DocumentStatus.PENDING:
         return <Clock className="w-5 h-5" />;
       default:
         return <Clock className="w-5 h-5" />;
@@ -149,13 +166,19 @@ export default function CitizenDashboardPage() {
                         <span className="ml-1.5">{request.status}</span>
                       </div>
                     </div>
-                    {request.document_url && (
-                      <button
-                        onClick={() => documentService.downloadDocument(request.id)}
-                        className="mt-2 text-sm text-indigo-600 hover:text-indigo-500"
-                      >
-                        Download Document
-                      </button>
+                    {request.status === DocumentStatus.APPROVED && (
+                      <div className="mt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownload(request.id)}
+                          disabled={downloading === request.id}
+                          className="flex items-center gap-2"
+                        >
+                          <Download className="w-4 h-4" />
+                          {downloading === request.id ? 'Downloading...' : 'Download Document'}
+                        </Button>
+                      </div>
                     )}
                   </div>
                 ))}

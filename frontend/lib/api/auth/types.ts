@@ -10,19 +10,20 @@ export enum UserRole {
   APPROVER = 'APPROVER'
 }
 
-export interface User extends BaseEntity {
+export interface User {
+  id: string;
   username: string;
   email: string;
   first_name: string;
   last_name: string;
   role: UserRole;
   roles: UserRole[];
-  functional_roles: UserRole[];
+  functional_roles: string[];
   is_active: boolean;
-  last_login?: Date;
   permissions: string[];
-  metadata?: Record<string, any>;
-  avatar?: string;
+  created_at: string;
+  updated_at: string;
+  citizen_id?: string | null;
   phone_number?: string;
   employment_status?: string;
   employer_name?: string;
@@ -31,66 +32,26 @@ export interface User extends BaseEntity {
 }
 
 export interface LoginDto {
-  nida_number?: string;
   username?: string;
+  nida_number?: string;
   password: string;
 }
 
 export interface RegisterDto {
-  username: string;
-  password: string;
-  email: string;
+  nida_number: string;
   first_name: string;
   last_name: string;
-  phone_number?: string;
-  role?: string;
-  is_active?: boolean;
-  permissions?: {
-    can_manage_users: boolean;
-    can_manage_roles: boolean;
-    can_view_audit_logs: boolean;
-    can_manage_settings: boolean;
-  };
+  email: string;
+  phone_number: string;
+  password: string;
 }
 
 export interface AuthResponse {
   status: string;
   data: {
-    data: {
-      needsPasswordSetup?: boolean;
-      citizen?: {
-        id: string;
-        nida_number: string;
-        first_name: string;
-        last_name: string;
-        email: string;
-        is_active: boolean;
-        created_at: string;
-        updated_at: string;
-        phone_number?: string;
-        employment_status?: string;
-        employer_name?: string;
-        occupation?: string;
-        registration_status?: string;
-        address?: {
-          city: string;
-          postal_code: string;
-          region: string;
-          street: string;
-        };
-        birth_certificate_number?: string;
-        date_of_birth?: string;
-        gender?: string;
-        marital_status?: string;
-        middle_name?: string;
-        nationality?: string;
-        other_names?: string;
-      };
-      access_token?: string;
-      refresh_token?: string;
-      user?: User;
-    };
-    status: string;
+    access_token: string;
+    user?: User;
+    citizen?: User;
   };
 }
 

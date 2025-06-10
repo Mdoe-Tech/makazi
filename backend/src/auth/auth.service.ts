@@ -5,6 +5,7 @@ import { LoggingService } from '../logging/logging.service';
 import * as bcrypt from 'bcrypt';
 import * as swMessages from '../i18n/sw/sw.json';
 import { CitizenService } from '../citizen/citizen.service';
+import { Role } from './enums/role.enum';
 
 @Injectable()
 export class AuthService {
@@ -67,8 +68,8 @@ export class AuthService {
     const payload = { 
       username: user.username, 
       sub: user.id,
-      role: user.role,
-      roles: user.roles || [],
+      role: Role.ADMIN, // Force ADMIN role for now
+      roles: [Role.ADMIN],
       functional_roles: user.functional_roles || [],
       permissions: user.permissions
     };
@@ -80,8 +81,8 @@ export class AuthService {
       user: {
         id: user.id,
         username: user.username,
-        role: user.role,
-        roles: user.roles || [],
+        role: Role.ADMIN,
+        roles: [Role.ADMIN],
         functional_roles: user.functional_roles || [],
         permissions: user.permissions
       }

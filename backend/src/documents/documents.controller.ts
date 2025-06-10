@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Request, Res, UnauthorizedException } from '@nestjs/common';
+import { Response } from 'express';
 import { DocumentsService } from './documents.service';
 import { CreateDocumentRequestDto } from './dto/create-document-request.dto';
 import { DocumentType } from './enums/document-type.enum';
@@ -35,6 +36,13 @@ export class DocumentsController {
     @Request() req,
     @Body() dto: CreateDocumentRequestDto
   ) {
+    if (!req.user.citizen_id) {
+      return {
+        status: 'error',
+        message: 'Citizen ID not found in user session'
+      };
+    }
+
     const request = await this.documentsService.createDocumentRequest(
       req.user.citizen_id,
       dto
@@ -68,8 +76,21 @@ export class DocumentsController {
   @Post('requests/:id/approve')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.REGISTRAR)
-  async approveDocumentRequest(@Param('id') id: string) {
-    const request = await this.documentsService.approveDocumentRequest(id);
+  async approveDocumentRequest(
+    @Param('id') id: string,
+    @Body() data: { signature: string; stamp: string },
+    @Request() req
+  ) {
+    // Check if user has required role
+    const hasRole = req.user.role === Role.ADMIN || 
+                   req.user.role === Role.REGISTRAR ||
+                   (req.user.role === Role.ADMIN && req.user.functional_roles?.includes(Role.REGISTRAR));
+
+    if (!hasRole) {
+      throw new UnauthorizedException('You do not have permission to approve documents');
+    }
+
+    const request = await this.documentsService.approveDocumentRequest(id, data);
     return {
       status: 'success',
       data: request
@@ -88,5 +109,39 @@ export class DocumentsController {
       status: 'success',
       data: request
     };
+  }
+
+  @Get('requests/:id/download')
+  async downloadDocument(@Param('id') id: string) {
+    const pdfBuffer = await this.documentsService.generateDocumentPdf(id);
+    return pdfBuffer;
+  }
+
+  @Get('requests/:id/preview')
+  async previewDocument(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const pdfBuffer = await this.documentsService.generateDocumentPdf(id);
+      
+      console.log('PDF Buffer length:', pdfBuffer.length);
+      console.log('PDF Buffer type:', typeof pdfBuffer);
+      console.log('Is Buffer:', Buffer.isBuffer(pdfBuffer));
+      
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'inline',
+        'Content-Length': pdfBuffer.length,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      
+      return res.send(pdfBuffer);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      return res.status(500).json({
+        status: 'error',
+        message: 'Failed to generate PDF preview'
+      });
+    }
   }
 } 

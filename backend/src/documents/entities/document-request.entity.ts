@@ -11,7 +11,7 @@ export class DocumentRequest {
   @Column('uuid')
   citizen_id: string;
 
-  @ManyToOne(() => Citizen)
+  @ManyToOne(() => Citizen, { eager: true })
   @JoinColumn({ name: 'citizen_id' })
   citizen: Citizen;
 
@@ -33,6 +33,12 @@ export class DocumentRequest {
 
   @Column({ nullable: true })
   document_url: string;
+
+  @Column({ type: 'text', nullable: true })
+  signature_url: string;
+
+  @Column({ type: 'text', nullable: true })
+  stamp_url: string;
 
   @Column({ nullable: true })
   rejection_reason: string;

@@ -9,6 +9,7 @@ import { AuthService } from './auth.service';
 import { AdminModule } from '../admin/admin.module';
 import { LoggingModule } from '../logging/logging.module';
 import { CitizenModule } from '../citizen/citizen.module';
+import { CitizensModule } from '../citizens/citizens.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { CitizenModule } from '../citizen/citizen.module';
     }),
     AdminModule,
     LoggingModule,
-    CitizenModule
+    CitizenModule,
+    CitizensModule
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtStrategy],
