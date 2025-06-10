@@ -22,8 +22,8 @@ class UUIDParam {
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class CitizenController {
   constructor(
-    private citizenService: CitizenService,
-    private loggingService: LoggingService
+    private readonly citizenService: CitizenService,
+    private readonly loggingService: LoggingService
   ) {}
 
   @Get()
@@ -182,15 +182,6 @@ export class CitizenController {
   ): Promise<Citizen> {
     this.loggingService.log(`Rejecting registration for citizen ID: ${params.id}`);
     return this.citizenService.rejectRegistration(params.id, reason);
-  }
-
-  @Post(':nida/password')
-  @UsePipes(new ValidationPipe({ transform: true }))
-  async setPassword(
-    @Param('nida') nida: string,
-    @Body() setPasswordDto: SetPasswordDto
-  ) {
-    return this.citizenService.setPassword(nida, setPasswordDto.password);
   }
 
   @Get('profile')

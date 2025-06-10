@@ -42,10 +42,10 @@ export default function CitizenRegistrationPage() {
   const { createCitizen, loading, error } = useCitizenStore();
   const { verifyNida } = useNidaStore();
   const [formData, setFormData] = useState<FormData>({
-    nida_number: '17492258534876078',
-    first_name: 'John',
-    last_name: 'Mdoe',
-    middle_name: 'Peter',
+    nida_number: '',
+    first_name: '',
+    last_name: '',
+    middle_name: '',
     date_of_birth: '1999-11-21',
     gender: 'male' as Gender,
     nationality: 'Tanzania',
@@ -202,7 +202,7 @@ export default function CitizenRegistrationPage() {
                     />
                   </div>
 
-                  <div className="col-span-6 sm:col-span-3">
+                  {/* <div className="col-span-6 sm:col-span-3">
                     <label htmlFor="other_names" className="block text-sm font-medium text-gray-700">
                       Other names
                     </label>
@@ -214,7 +214,7 @@ export default function CitizenRegistrationPage() {
                       value={formData.other_names}
                       onChange={handleChange}
                     />
-                  </div>
+                  </div> */}
 
                   <div className="col-span-6 sm:col-span-3">
                     <label htmlFor="date_of_birth" className="block text-sm font-medium text-gray-700">
@@ -316,7 +316,7 @@ export default function CitizenRegistrationPage() {
                     />
                   </div>
 
-                  <div className="col-span-6 sm:col-span-3">
+                  {/* <div className="col-span-6 sm:col-span-3">
                     <label htmlFor="employer_name" className="block text-sm font-medium text-gray-700">
                       Employer name
                     </label>
@@ -328,7 +328,7 @@ export default function CitizenRegistrationPage() {
                       value={formData.employer_name}
                       onChange={handleChange}
                     />
-                  </div>
+                  </div> */}
 
                   <div className="col-span-6">
                     <label htmlFor="address" className="block text-sm font-medium text-gray-700">

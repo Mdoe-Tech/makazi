@@ -102,11 +102,12 @@ export default function ApproveCitizenPage({ params }: PageProps) {
     );
   }
 
-  // Check if user has APPROVER role in either role or roles array
-  const hasApproverRole = user.role === UserRole.APPROVER || 
-    (user.roles && user.roles.includes(UserRole.APPROVER));
+  // Check if user has ADMIN or SUPER_ADMIN role
+  const hasAdminRole = user.role === UserRole.ADMIN || 
+    user.role === UserRole.SUPER_ADMIN || 
+    (user.roles && (user.roles.includes(UserRole.ADMIN) || user.roles.includes(UserRole.SUPER_ADMIN)));
 
-  if (!hasApproverRole) {
+  if (!hasAdminRole) {
     return (
       <DashboardLayout userType="admin">
         <div className="flex justify-center items-center h-64">

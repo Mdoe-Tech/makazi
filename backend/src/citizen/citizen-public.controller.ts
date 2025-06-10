@@ -5,8 +5,8 @@ import { LoggingService } from '../logging/logging.service';
 @Controller('citizen')
 export class CitizenPublicController {
   constructor(
-    private citizenService: CitizenService,
-    private loggingService: LoggingService
+    private readonly citizenService: CitizenService,
+    private readonly loggingService: LoggingService
   ) {}
 
   @Get('verify/:nida_number')
@@ -55,7 +55,7 @@ export class CitizenPublicController {
         'Citizen'
       );
 
-      const result = await this.citizenService.setPassword(nidaNumber, body.password);
+      const result = await this.citizenService.setInitialPassword(nidaNumber, body.password);
       
       this.loggingService.log(
         `Successfully set password for NIDA: ${nidaNumber}`,

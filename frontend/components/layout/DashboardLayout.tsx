@@ -21,12 +21,16 @@ import {
   Sun,
   ChevronRight,
   ChevronLeft,
-  User
+  User,
+  FileCheck,
+  LayoutDashboard
 } from 'lucide-react';
 import { colors } from '@/lib/theme/colors';
 import { Avatar } from '@/components/ui/avatar';
 import { UserRole } from '@/lib/api/auth/types';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -142,6 +146,11 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
             title: 'Citizens',
             href: '/admin/citizens',
             icon: Users,
+          },
+          {
+            title: 'NIDA',
+            href: '/admin/nida',
+            icon: FileCheck,
           },
           {
             title: 'Register Citizen',

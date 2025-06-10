@@ -3,13 +3,19 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
-import { apiClientInstance } from '@/lib/api/client';
+import axios from 'axios';
 
 interface VerificationResponse {
   data: {
     data: {
       exists: boolean;
       hasPassword: boolean;
+      citizen: {
+        id: string;
+        first_name: string;
+        last_name: string;
+        nida_number: string;
+      };
     }
   }
 }
@@ -19,6 +25,8 @@ interface FormData {
   password: string;
   confirmPassword: string;
 }
+
+const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:30002/api';
 
 export default function CitizenLoginPage() {
   const router = useRouter();
@@ -38,8 +46,8 @@ export default function CitizenLoginPage() {
     setVerifying(true);
 
     try {
-      const response = await apiClientInstance.get<VerificationResponse>(`/citizen/verify/${formData.nida_number}`);
-      const { exists, hasPassword } = response.data.data;
+      const response = await axios.get<VerificationResponse>(`${baseURL}/citizen/verify/${formData.nida_number}`);
+      const { exists, hasPassword } = response.data.data.data;
 
       if (!exists) {
         setFormError('NIDA number not found. Please check and try again.');
@@ -72,11 +80,12 @@ export default function CitizenLoginPage() {
       }
 
       try {
-        await apiClientInstance.post(`/citizen/${formData.nida_number}/password`, {
+        // Create password without authentication
+        await axios.post(`${baseURL}/citizen/${formData.nida_number}/password`, {
           password: formData.password
         });
 
-        // Show success message and redirect to login
+        // Show success message and go to login step
         setFormError(null);
         setStep('login');
         setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
@@ -87,12 +96,8 @@ export default function CitizenLoginPage() {
     } else {
       // Handle regular login
       try {
-        const response = await login({ nida_number: formData.nida_number, password: formData.password });
-        if (response.data.data.needsPasswordSetup) {
-          setStep('create-password');
-          setFormError('Please set up your password first');
-        }
-        // Redirection is now handled in the auth store
+        await login({ nida_number: formData.nida_number, password: formData.password });
+        // Redirection is handled in the auth store
       } catch (error: any) {
         console.error('Login error:', error);
         setFormError(error.response?.data?.message || error.message || 'Failed to login. Please try again.');

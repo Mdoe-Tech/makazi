@@ -53,7 +53,7 @@ export default function DocumentRequestPage({ params }: { params: Promise<{ type
     setError(null);
 
     try {
-      await documentService.requestDocument({
+      await documentService.requestDocument(type as DocumentType, {
         document_type: type as DocumentType,
         purpose
       });

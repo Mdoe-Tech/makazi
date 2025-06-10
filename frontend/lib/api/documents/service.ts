@@ -19,6 +19,11 @@ class DocumentService {
     return response.data.data;
   }
 
+  async requestDocument(type: DocumentType, data: CreateDocumentRequestDto): Promise<DocumentRequest> {
+    const response = await apiClientInstance.post<ApiResponse<DocumentRequest>>('/documents/request', data);
+    return response.data.data;
+  }
+
   async approveDocumentRequest(id: string, data: { signature: string; stamp: string }): Promise<void> {
     await apiClientInstance.post(`/documents/requests/${id}/approve`, data, {
       headers: {
