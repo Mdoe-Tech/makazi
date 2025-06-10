@@ -42,12 +42,16 @@ class DocumentService {
   }
 
   async downloadDocument(id: string): Promise<void> {
-    const response = await apiClientInstance.get(`/documents/requests/${id}/download`, {
-      responseType: 'blob'
-    });
+    const response = await apiClientInstance.get(`/documents/requests/${id}/download`);
     
-    // The PDF data is in response.data.data
-    const url = window.URL.createObjectURL(response.data.data);
+    // Convert the Buffer data to a Uint8Array
+    const uint8Array = new Uint8Array(response.data.data);
+    
+    // Create a blob from the Uint8Array
+    const blob = new Blob([uint8Array], { type: 'application/pdf' });
+    
+    // Create a URL for the blob
+    const url = window.URL.createObjectURL(blob);
     
     // Create a temporary link element
     const link = document.createElement('a');
