@@ -8,19 +8,45 @@ import { Citizen } from './entities/citizen.entity';
 export class CitizenRepository {
   constructor(
     @InjectRepository(Citizen)
-    private readonly repository: Repository<Citizen>
+    private repository: Repository<Citizen>
   ) {}
 
-  async findAll(): Promise<Citizen[]> {
-    return this.repository.find();
+  async findOne(id: string): Promise<Citizen | null> {
+    console.log('Repository findOne - ID:', id); // Debug log
+    try {
+      const citizen = await this.repository.createQueryBuilder('citizen')
+        .where('citizen.id = :id', { id })
+        .getOne();
+      console.log('Repository findOne - Result:', citizen); // Debug log
+      return citizen;
+    } catch (error) {
+      console.error('Repository findOne - Error:', error); // Debug log
+      throw error;
+    }
   }
 
-  async findOne(id: string): Promise<Citizen | null> {
-    return this.repository.findOne({ where: { id } });
+  async findById(id: string): Promise<Citizen | null> {
+    console.log('Repository findById - ID:', id); // Debug log
+    try {
+      const citizen = await this.repository.findOne({ where: { id } });
+      console.log('Repository findById - Result:', citizen); // Debug log
+      return citizen;
+    } catch (error) {
+      console.error('Repository findById - Error:', error); // Debug log
+      throw error;
+    }
   }
 
   async findByNidaNumber(nidaNumber: string): Promise<Citizen | null> {
-    return this.repository.findOne({ where: { nida_number: nidaNumber } });
+    console.log('Repository findByNidaNumber - NIDA:', nidaNumber); // Debug log
+    try {
+      const citizen = await this.repository.findOne({ where: { nida_number: nidaNumber } });
+      console.log('Repository findByNidaNumber - Result:', citizen); // Debug log
+      return citizen;
+    } catch (error) {
+      console.error('Repository findByNidaNumber - Error:', error); // Debug log
+      throw error;
+    }
   }
 
   async findByBirthCertificateNumber(birthCertificateNumber: string): Promise<Citizen | null> {
@@ -35,9 +61,10 @@ export class CitizenRepository {
     return this.repository.find({ where: { registration_status: status } });
   }
 
-  async create(data: Partial<Citizen>): Promise<Citizen> {
-    const citizen = this.repository.create(data);
-    return this.repository.save(citizen);
+  create(data: Partial<Citizen>): Citizen {
+    const citizen = new Citizen();
+    Object.assign(citizen, data);
+    return citizen;
   }
 
   async update(id: string, data: Partial<Citizen>): Promise<Citizen> {
@@ -87,7 +114,15 @@ export class CitizenRepository {
     return this.repository.save(citizen);
   }
 
-  async remove(id: string): Promise<void> {
-    await this.repository.delete(id);
+  async remove(citizen: Citizen): Promise<Citizen> {
+    return this.repository.remove(citizen);
+  }
+
+  async save(citizen: Citizen): Promise<Citizen> {
+    return this.repository.save(citizen);
+  }
+
+  async findAll(): Promise<Citizen[]> {
+    return this.repository.find();
   }
 } 

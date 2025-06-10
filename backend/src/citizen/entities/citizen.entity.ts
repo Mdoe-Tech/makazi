@@ -5,9 +5,6 @@ import { RegistrationStatus } from '../enums/registration-status.enum';
 
 @Entity('citizen')
 export class Citizen extends BaseEntity {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
   @Column({ unique: true })
   nida_number: string;
 

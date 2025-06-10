@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UsePipes, ValidationPipe, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UsePipes, ValidationPipe, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { CitizenService } from './citizen.service';
 import { LoggingService } from '../logging/logging.service';
 
@@ -9,8 +9,8 @@ export class CitizenPublicController {
     private readonly loggingService: LoggingService
   ) {}
 
-  @Get('verify/:nida_number')
-  async verifyNidaNumber(@Param('nida_number') nidaNumber: string) {
+  @Get('verify/:nidaNumber')
+  async verifyNidaNumber(@Param('nidaNumber') nidaNumber: string) {
     this.loggingService.log(
       `Verifying NIDA number: ${nidaNumber}`,
       'Citizen'
@@ -21,13 +21,16 @@ export class CitizenPublicController {
         `NIDA verification result for ${nidaNumber}: exists=${result.exists}, hasPassword=${result.hasPassword}`,
         'Citizen'
       );
-      return { status: 'success', data: result };
+      return {
+        status: 'success',
+        data: result
+      };
     } catch (error) {
       this.loggingService.error(
         `Error verifying NIDA number: ${nidaNumber}: ${error.message}`,
         'Citizen'
       );
-      throw error;
+      throw new InternalServerErrorException('Error verifying NIDA number');
     }
   }
 

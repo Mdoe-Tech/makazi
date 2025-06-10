@@ -132,8 +132,8 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
             icon: Settings,
           },
         ];
-      }
-      
+    }
+
       // Regular ADMIN gets specific permissions
       if (user?.role === UserRole.ADMIN) {
         return [
@@ -207,7 +207,7 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
         href: '/citizen/profile',
         icon: User,
       },
-    ];
+  ];
   };
 
   const navigation = getNavigationItems();

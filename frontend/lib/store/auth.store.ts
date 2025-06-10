@@ -89,12 +89,12 @@ export const useAuthStore = create<AuthState>()(
                 }
                 const userData = {
                   id: citizen.id,
-                  username: citizen.nida_number,
+                  username: citizen.nida_number || citizen.id,
                   email: citizen.email || '',
                   first_name: citizen.first_name,
                   last_name: citizen.last_name,
-                  role: UserRole.USER,
-                  roles: [UserRole.USER],
+                  role: UserRole.CITIZEN,
+                  roles: [UserRole.CITIZEN],
                   functional_roles: [],
                   is_active: citizen.is_active,
                   permissions: [],
@@ -105,7 +105,8 @@ export const useAuthStore = create<AuthState>()(
                   employer_name: citizen.employer_name,
                   occupation: citizen.occupation,
                   registration_status: citizen.registration_status,
-                  citizen_id: citizen.id
+                  citizen_id: citizen.id,
+                  nida_number: citizen.nida_number
                 };
                 console.log('Setting citizen data:', userData);
                 set({ 

@@ -49,7 +49,9 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
-        window.location.href = '/admin/login';
+        // Redirect based on the current route
+        const isCitizenRoute = window.location.pathname.startsWith('/citizen');
+        window.location.href = isCitizenRoute ? '/citizen/login' : '/admin/login';
       }
     }
     return Promise.reject(error);

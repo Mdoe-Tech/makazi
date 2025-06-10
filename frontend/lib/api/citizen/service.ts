@@ -1,16 +1,20 @@
 import { apiClientInstance } from '../client';
 import type { PaginatedResponse, PaginationParams } from '../types';
 import type { Citizen, CitizenFilters, CreateCitizenDto, UpdateCitizenDto } from './types';
-import type { ApiResponse } from '../types';
+
+interface ApiResponse<T> {
+  status: string;
+  data: T;
+}
 
 class CitizenService {
-  async getCitizens(): Promise<Citizen[]> {
-    const response = await apiClientInstance.get<{ status: string; data: Citizen[] }>('/citizen');
+  async getCitizen(id: string): Promise<Citizen> {
+    const response = await apiClientInstance.get<ApiResponse<Citizen>>(`/citizen/${id}`);
     return response.data;
   }
 
-  async getCitizen(id: string): Promise<Citizen> {
-    const response = await apiClientInstance.get<ApiResponse<Citizen>>(`/citizen/${id}`);
+  async getCitizens(params?: PaginationParams): Promise<PaginatedResponse<Citizen>> {
+    const response = await apiClientInstance.get<ApiResponse<PaginatedResponse<Citizen>>>('/citizen', { params });
     return response.data;
   }
 
@@ -24,13 +28,13 @@ class CitizenService {
     return response.data;
   }
 
-  async createCitizen(data: Omit<Citizen, 'id' | 'created_at' | 'updated_at'>): Promise<Citizen> {
+  async createCitizen(data: CreateCitizenDto): Promise<Citizen> {
     const response = await apiClientInstance.post<ApiResponse<Citizen>>('/citizen', data);
     return response.data;
   }
 
-  async updateCitizen(id: string, data: Partial<Citizen>): Promise<Citizen> {
-    const response = await apiClientInstance.patch<ApiResponse<Citizen>>(`/citizen/${id}`, data);
+  async updateCitizen(id: string, data: UpdateCitizenDto): Promise<Citizen> {
+    const response = await apiClientInstance.put<ApiResponse<Citizen>>(`/citizen/${id}`, data);
     return response.data;
   }
 
@@ -87,6 +91,22 @@ class CitizenService {
 
   async getCitizenVerificationHistory(id: string): Promise<{ data: any }> {
     return apiClientInstance.get<{ data: any }>(`/citizen/${id}/verification-history`);
+  }
+
+  async getProfile(): Promise<{ data: Citizen }> {
+    try {
+      const response = await apiClientInstance.get<ApiResponse<{ data: Citizen }>>('/citizen/profile');
+      console.log('Profile response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Profile error:', error);
+      throw error;
+    }
+  }
+
+  async updateProfile(data: Partial<Citizen>): Promise<Citizen> {
+    const response = await apiClientInstance.post<ApiResponse<Citizen>>('/citizen/profile', data);
+    return response.data;
   }
 }
 

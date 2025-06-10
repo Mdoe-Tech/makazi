@@ -41,10 +41,12 @@ export class AuthController {
         citizen_id: validationResult.citizen.id
       };
 
+      const token = this.jwtService.sign(payload);
+
       return {
         status: 'success',
         data: {
-          access_token: this.jwtService.sign(payload),
+          access_token: token,
           citizen: validationResult.citizen
         }
       };

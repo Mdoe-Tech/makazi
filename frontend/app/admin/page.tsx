@@ -55,7 +55,7 @@ export default function AdminDashboard() {
     try {
       // Fetch citizens
       const citizens = await citizenService.getCitizens();
-      const pendingRegistrations = citizens.filter(
+      const pendingRegistrations = citizens.data.filter(
         c => c.registration_status === RegistrationStatus.PENDING
       ).length;
 
@@ -72,7 +72,7 @@ export default function AdminDashboard() {
       ).length;
 
       // Get recent citizens (last 5)
-      const recentCitizens = citizens
+      const recentCitizens = citizens.data
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 5);
 
@@ -82,7 +82,7 @@ export default function AdminDashboard() {
         .slice(0, 5);
 
       setStats({
-        totalCitizens: citizens.length,
+        totalCitizens: citizens.data.length,
         pendingRegistrations,
         totalDocuments: documents.length,
         pendingDocuments,

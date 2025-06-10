@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards, UsePipes, BadRequestException, HttpCode, ValidationPipe, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards, UsePipes, BadRequestException, HttpCode, ValidationPipe, Request, NotFoundException } from '@nestjs/common';
 import { CitizenService } from './citizen.service';
 import { Citizen } from './entities/citizen.entity';
 import { CreateCitizenDto } from './dto/create-citizen.dto';
@@ -12,6 +12,7 @@ import { LoggingService } from '../logging/logging.service';
 import { IsUUID } from 'class-validator';
 import { UpdateCitizenDto } from './dto/update-citizen.dto';
 import { SetPasswordDto } from './dto/set-password.dto';
+import { CitizenRepository } from './citizen.repository';
 
 class UUIDParam {
   @IsUUID()
@@ -19,12 +20,40 @@ class UUIDParam {
 }
 
 @Controller('citizen')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 export class CitizenController {
   constructor(
     private readonly citizenService: CitizenService,
-    private readonly loggingService: LoggingService
+    private readonly loggingService: LoggingService,
+    private readonly citizenRepository: CitizenRepository
   ) {}
+
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@Request() req) {
+    console.log('Profile request user:', req.user); // Debug log
+    if (!req.user?.citizen_id) {
+      console.error('No citizen_id in token:', req.user); // Debug log
+      throw new BadRequestException('Citizen ID not found in token');
+    }
+
+    try {
+      console.log('Fetching citizen with ID:', req.user.citizen_id); // Debug log
+      const citizen = await this.citizenRepository.findById(req.user.citizen_id);
+      console.log('Profile response:', citizen); // Debug log
+      if (!citizen) {
+        console.error('Citizen not found for ID:', req.user.citizen_id); // Debug log
+        throw new NotFoundException('Citizen not found');
+      }
+      return {
+        status: 'success',
+        data: citizen
+      };
+    } catch (error) {
+      console.error('Profile error:', error); // Debug log
+      throw error;
+    }
+  }
 
   @Get()
   @Roles(Role.ADMIN, Role.REGISTRAR, Role.VERIFIER, Role.APPROVER)
@@ -184,18 +213,8 @@ export class CitizenController {
     return this.citizenService.rejectRegistration(params.id, reason);
   }
 
-  @Get('profile')
-  @Roles(Role.CITIZEN)
-  async getProfile(@Request() req) {
-    const citizen = await this.citizenService.findOne(req.user.citizen_id);
-    return {
-      status: 'success',
-      data: citizen
-    };
-  }
-
   @Post('profile')
-  @Roles(Role.CITIZEN)
+  @UseGuards(JwtAuthGuard)
   async updateProfile(@Request() req, @Body() updateCitizenDto: UpdateCitizenDto) {
     const citizen = await this.citizenService.update(req.user.citizen_id, updateCitizenDto);
     return {

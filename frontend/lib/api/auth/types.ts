@@ -7,7 +7,8 @@ export enum UserRole {
   VIEWER = 'VIEWER',
   REGISTRAR = 'REGISTRAR',
   VERIFIER = 'VERIFIER',
-  APPROVER = 'APPROVER'
+  APPROVER = 'APPROVER',
+  CITIZEN = 'CITIZEN'
 }
 
 export interface User {
@@ -29,6 +30,7 @@ export interface User {
   employer_name?: string;
   occupation?: string;
   registration_status?: string;
+  nida_number?: string;
 }
 
 export interface LoginDto {
@@ -49,9 +51,12 @@ export interface RegisterDto {
 export interface AuthResponse {
   status: string;
   data: {
-    access_token: string;
-    user?: User;
-    citizen?: User;
+    data: {
+      access_token: string;
+      user?: User;
+      citizen?: User;
+    };
+    status: string;
   };
 }
 

@@ -10,11 +10,10 @@ import { LoggingService } from '../logging/logging.service';
 import { ConfigService } from '@nestjs/config';
 import * as swMessages from '../i18n/sw/sw.json';
 import { CitizenRepository } from './citizen.repository';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Citizen } from './entities/citizen.entity';
 import { NidaService } from '../nida/nida.service';
 import * as bcrypt from 'bcrypt';
+import { Citizen } from './entities/citizen.entity';
+import { IsUUID } from 'class-validator';
 
 @Injectable()
 export class CitizenService {
@@ -24,8 +23,7 @@ export class CitizenService {
   private readonly requireNidaVerification: boolean;
 
   constructor(
-    @InjectRepository(Citizen)
-    private citizenRepository: Repository<Citizen>,
+    private readonly citizenRepository: CitizenRepository,
     private readonly nidaService: NidaService,
     private readonly validationService: RegistrationValidationService,
     private readonly notificationService: NotificationService,
@@ -39,23 +37,38 @@ export class CitizenService {
   }
 
   async findAll() {
-    return this.citizenRepository.find();
+    return this.citizenRepository.findAll();
   }
 
-  async findOne(id: string) {
-    const citizen = await this.citizenRepository.findOne({ where: { id } });
-    if (!citizen) {
-      throw new NotFoundException(`Citizen with ID ${id} not found`);
+  async findOne(id: string): Promise<Citizen> {
+    console.log('Service findOne - ID:', id); // Debug log
+    try {
+      const citizen = await this.citizenRepository.findOne(id);
+      console.log('Service findOne - Result:', citizen); // Debug log
+      if (!citizen) {
+        throw new NotFoundException(`Citizen with ID ${id} not found`);
+      }
+      return citizen;
+    } catch (error) {
+      console.error('Service findOne - Error:', error); // Debug log
+      throw error;
     }
-    return citizen;
   }
 
   async findByNida(nidaNumber: string) {
-    return this.citizenRepository.findOne({ where: { nida_number: nidaNumber } });
+    return this.citizenRepository.findByNidaNumber(nidaNumber);
   }
 
   async findByNidaNumber(nidaNumber: string) {
-    return this.citizenRepository.findOne({ where: { nida_number: nidaNumber } });
+    console.log('Service findByNidaNumber - NIDA:', nidaNumber); // Debug log
+    try {
+      const citizen = await this.citizenRepository.findByNidaNumber(nidaNumber);
+      console.log('Service findByNidaNumber - Result:', citizen); // Debug log
+      return citizen;
+    } catch (error) {
+      console.error('Service findByNidaNumber - Error:', error); // Debug log
+      throw error;
+    }
   }
 
   async create(createCitizenDto: CreateCitizenDto): Promise<Citizen> {
@@ -91,7 +104,7 @@ export class CitizenService {
         verification_data: nidaVerification.data
       });
 
-      return await this.citizenRepository.save(citizen);
+      return this.citizenRepository.save(citizen);
     } catch (error) {
       this.loggingService.error(`Error creating citizen: ${error.message}`, error.stack);
       throw error;
@@ -104,7 +117,7 @@ export class CitizenService {
     return this.citizenRepository.save(citizen);
   }
 
-  async remove(id: string) {
+  async remove(id: string): Promise<Citizen> {
     const citizen = await this.findOne(id);
     return this.citizenRepository.remove(citizen);
   }
@@ -307,41 +320,50 @@ export class CitizenService {
       'Citizen'
     );
 
-    // First verify if the NIDA number exists in the nida table
-    const nidaVerification = await this.nidaService.verifyNidaNumber(nidaNumber);
-    
-    if (!nidaVerification.is_valid) {
+    try {
+      // First verify if the NIDA number exists in the nida table
+      const nidaVerification = await this.nidaService.verifyNidaNumber(nidaNumber);
+      
+      if (!nidaVerification.is_valid) {
+        this.loggingService.log(
+          `Invalid NIDA number: ${nidaNumber}`,
+          'Citizen'
+        );
+        return {
+          exists: false,
+          hasPassword: false,
+          isValid: false,
+          message: 'Invalid NIDA number'
+        };
+      }
+
+      // Then check if a citizen with this NIDA number exists
+      const citizen = await this.citizenRepository.findByNidaNumber(nidaNumber);
+      
       this.loggingService.log(
-        `Invalid NIDA number: ${nidaNumber}`,
+        `NIDA verification result in service for ${nidaNumber}: exists=${!!citizen}, hasPassword=${citizen?.has_password || false}`,
         'Citizen'
       );
+
       return {
-        exists: false,
-        hasPassword: false,
-        isValid: false,
-        message: 'Invalid NIDA number'
+        exists: !!citizen,
+        hasPassword: citizen?.has_password || false,
+        isValid: true,
+        citizen: citizen ? {
+          id: citizen.id,
+          first_name: citizen.first_name,
+          last_name: citizen.last_name,
+          nida_number: citizen.nida_number
+        } : undefined
       };
+    } catch (error) {
+      this.loggingService.error(
+        `Error verifying NIDA number: ${nidaNumber}`,
+        error,
+        'Citizen'
+      );
+      throw error;
     }
-
-    // Then check if a citizen with this NIDA number exists
-    const citizen = await this.citizenRepository.findOne({ where: { nida_number: nidaNumber } });
-    
-    this.loggingService.log(
-      `NIDA verification result in service for ${nidaNumber}: exists=${!!citizen}, hasPassword=${citizen?.has_password || false}`,
-      'Citizen'
-    );
-
-    return {
-      exists: !!citizen,
-      hasPassword: citizen?.has_password || false,
-      isValid: true,
-      citizen: citizen ? {
-        id: citizen.id,
-        first_name: citizen.first_name,
-        last_name: citizen.last_name,
-        nida_number: citizen.nida_number
-      } : undefined
-    };
   }
 
   async setInitialPassword(nidaNumber: string, password: string) {
@@ -350,7 +372,7 @@ export class CitizenService {
       'Citizen'
     );
     try {
-      const citizen = await this.citizenRepository.findOne({ where: { nida_number: nidaNumber } });
+      const citizen = await this.citizenRepository.findByNidaNumber(nidaNumber);
       if (!citizen) {
         this.loggingService.error(
           `Citizen not found for NIDA: ${nidaNumber}`,
@@ -368,20 +390,10 @@ export class CitizenService {
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      await this.citizenRepository.update(
-        { nida_number: nidaNumber },
-        { 
-          password: hashedPassword,
-          has_password: true
-        }
-      );
+      citizen.password = hashedPassword;
+      citizen.has_password = true;
 
-      this.loggingService.log(
-        `Successfully set initial password in service for NIDA: ${nidaNumber}`,
-        'Citizen'
-      );
-
-      return { message: 'Password set successfully' };
+      return this.citizenRepository.save(citizen);
     } catch (error) {
       this.loggingService.error(
         `Error setting initial password in service for NIDA: ${nidaNumber}: ${error.message}`,

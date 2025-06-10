@@ -56,37 +56,38 @@ export interface NidaVerificationResult {
 
 export interface Citizen {
   id: string;
-  nida_number: string;
   first_name: string;
-  last_name: string;
   middle_name?: string;
-  date_of_birth: string;
-  gender: Gender;
-  nationality: string;
-  email?: string;
+  last_name: string;
+  email: string;
   phone_number: string;
-  address: {
+  date_of_birth: string;
+  gender: string;
+  nationality: string;
+  nida_number: string;
+  registration_status: string;
+  address?: {
     street: string;
     city: string;
     region: string;
     postal_code: string;
   };
-  other_names?: string;
-  marital_status: MaritalStatus;
+  employment_status: string;
   occupation?: string;
   employer_name?: string;
-  employment_status?: EmploymentStatus;
-  birth_certificate_number: string;
-  registration_status: RegistrationStatus;
+  marital_status: string;
+  is_nida_verified: boolean;
+  verification_data?: {
+    is_valid: boolean;
+    match_score: number;
+    verification_date: string;
+    details: {
+      verified_fields: string[];
+      mismatches: string[];
+    };
+  };
   created_at: string;
   updated_at: string;
-  is_active: boolean;
-  has_password: boolean;
-  password?: string;
-  rejection_reason?: string;
-  documents?: any;
-  biometric_data?: any;
-  verification_data?: any;
 }
 
 export interface CreateCitizenDto {

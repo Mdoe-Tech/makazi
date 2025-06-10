@@ -15,17 +15,22 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
+    console.log('JWT Strategy - Raw payload:', payload); // Debug log
+    
     // Ensure role is properly set
     const role = payload.role || Role.ADMIN;
     
-    return { 
+    const user = { 
       userId: payload.sub, 
-      username: payload.username,
+      username: payload.username || payload.nida_number,
       role: role,
       roles: [role],
       functional_roles: payload.functional_roles || [],
-      permissions: payload.permissions,
-      citizen_id: payload.citizen_id
+      permissions: payload.permissions || [],
+      citizen_id: payload.citizen_id || payload.sub
     };
+    
+    console.log('JWT Strategy - Processed user:', user); // Debug log
+    return user;
   }
 } 
