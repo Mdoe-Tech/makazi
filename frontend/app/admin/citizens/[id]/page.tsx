@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { citizenService } from '@/lib/api/citizen/service';
 import type { Citizen } from '@/lib/api/citizen/types';
 import { RegistrationStatus } from '@/lib/api/citizen/enums';
@@ -103,26 +102,21 @@ export default function CitizenDetailsPage({ params }: PageProps) {
 
   if (loadingCitizen) {
     return (
-      <DashboardLayout userType="admin">
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
-      </DashboardLayout>
     );
   }
 
   if (error || !citizen) {
     return (
-      <DashboardLayout userType="admin">
         <div className="flex justify-center items-center h-64">
           <div className="text-red-600">{error || 'Citizen not found'}</div>
         </div>
-      </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout userType="admin">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -137,8 +131,8 @@ export default function CitizenDetailsPage({ params }: PageProps) {
 
         {/* Status Badge */}
         <div className="flex items-center space-x-2">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(citizen.registration_status)}`}>
-            {getStatusIcon(citizen.registration_status)}
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(citizen.registration_status as RegistrationStatus)}`}>
+            {getStatusIcon(citizen.registration_status as RegistrationStatus)}
             <span className="ml-1.5">{citizen.registration_status}</span>
           </span>
           <span className="text-sm text-gray-500">
@@ -202,28 +196,28 @@ export default function CitizenDetailsPage({ params }: PageProps) {
                 <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-900">Street Address</p>
-                  <p className="text-sm text-gray-500">{citizen.address.street}</p>
+                  <p className="text-sm text-gray-500">{citizen.address?.street || 'Not provided'}</p>
                 </div>
               </div>
               <div className="flex items-start">
                 <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-900">City</p>
-                  <p className="text-sm text-gray-500">{citizen.address.city}</p>
+                  <p className="text-sm text-gray-500">{citizen.address?.city || 'Not provided'}</p>
                 </div>
               </div>
               <div className="flex items-start">
                 <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-900">Region</p>
-                  <p className="text-sm text-gray-500">{citizen.address.region}</p>
+                  <p className="text-sm text-gray-500">{citizen.address?.region || 'Not provided'}</p>
                 </div>
               </div>
               <div className="flex items-start">
                 <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-900">Postal Code</p>
-                  <p className="text-sm text-gray-500">{citizen.address.postal_code}</p>
+                  <p className="text-sm text-gray-500">{citizen.address?.postal_code || 'Not provided'}</p>
                 </div>
               </div>
             </div>
@@ -306,6 +300,5 @@ export default function CitizenDetailsPage({ params }: PageProps) {
           )}
         </div>
       </div>
-    </DashboardLayout>
   );
 } 

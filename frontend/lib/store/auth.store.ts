@@ -3,6 +3,7 @@ import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 import { authService } from '../api/auth/service';
 import type { User, LoginDto, RegisterDto, AuthResponse } from '../api/auth/types';
 import { UserRole } from '../api/auth/types';
+import type { ApiResponse } from '../api/types';
 
 interface AuthState {
   user: User | null;
@@ -15,7 +16,7 @@ interface AuthState {
   register: (data: RegisterDto) => Promise<AuthResponse>;
   logout: () => void;
   reset: () => void;
-  initialize: () => void;
+  initialize: () => Promise<void>;
 }
 
 const initialState = {
@@ -32,30 +33,37 @@ export const useAuthStore = create<AuthState>()(
       (set, get) => ({
         ...initialState,
 
-        initialize: () => {
+        initialize: async () => {
+          if (get().initialized) return;
+          
           const token = localStorage.getItem('token');
           if (token) {
-            // Decode token to get user info
             try {
               const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+              console.log('Token payload:', tokenPayload);
+              
+              const userData: User = {
+                id: tokenPayload.sub,
+                username: tokenPayload.username,
+                email: tokenPayload.email || '',
+                first_name: tokenPayload.first_name || '',
+                last_name: tokenPayload.last_name || '',
+                role: tokenPayload.role || UserRole.ADMIN,
+                roles: tokenPayload.roles || [tokenPayload.role || UserRole.ADMIN],
+                functional_roles: tokenPayload.functional_roles || [],
+                is_active: true,
+                permissions: tokenPayload.permissions || [],
+                created_at: tokenPayload.created_at || new Date().toISOString(),
+                updated_at: tokenPayload.updated_at || new Date().toISOString(),
+                citizen_id: tokenPayload.citizen_id || null,
+                phone_number: tokenPayload.phone_number || ''
+              };
+              
+              console.log('Initializing with user data:', userData);
               set({
                 token,
-                initialized: true,
-                user: {
-                  id: tokenPayload.sub,
-                  username: tokenPayload.username,
-                  email: tokenPayload.email || '',
-                  first_name: tokenPayload.first_name || '',
-                  last_name: tokenPayload.last_name || '',
-                  role: tokenPayload.role || UserRole.ADMIN,
-                  roles: tokenPayload.roles || [tokenPayload.role || UserRole.ADMIN],
-                  functional_roles: tokenPayload.functional_roles || [],
-                  is_active: true,
-                  permissions: tokenPayload.permissions || [],
-                  created_at: tokenPayload.created_at || new Date().toISOString(),
-                  updated_at: tokenPayload.updated_at || new Date().toISOString(),
-                  citizen_id: tokenPayload.citizen_id || null
-                }
+                user: userData,
+                initialized: true
               });
             } catch (error) {
               console.error('Error initializing auth state:', error);
@@ -73,21 +81,21 @@ export const useAuthStore = create<AuthState>()(
             const response = await authService.login(credentials);
             console.log('Login response:', response);
             
-            if (response.data.data.access_token) {
-              const token = response.data.data.access_token;
-              localStorage.setItem('token', token);
+            const accessToken = response.data.data.access_token;
+            if (accessToken) {
+              localStorage.setItem('token', accessToken);
 
               // Decode JWT token to get role
-              const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+              const tokenPayload = JSON.parse(atob(accessToken.split('.')[1]));
               console.log('Token payload:', tokenPayload);
 
               // Handle citizen login
-              if (tokenPayload.role === 'CITIZEN') {
+              if (tokenPayload.role === UserRole.CITIZEN) {
                 const citizen = response.data.data.citizen;
                 if (!citizen) {
                   throw new Error('Citizen data not found in response');
                 }
-                const userData = {
+                const userData: User = {
                   id: citizen.id,
                   username: citizen.nida_number || citizen.id,
                   email: citizen.email || '',
@@ -101,24 +109,16 @@ export const useAuthStore = create<AuthState>()(
                   created_at: citizen.created_at,
                   updated_at: citizen.updated_at,
                   phone_number: citizen.phone_number,
-                  employment_status: citizen.employment_status,
-                  employer_name: citizen.employer_name,
-                  occupation: citizen.occupation,
-                  registration_status: citizen.registration_status,
                   citizen_id: citizen.id,
-                  nida_number: citizen.nida_number
                 };
                 console.log('Setting citizen data:', userData);
                 set({ 
                   user: userData,
-                  token,
+                  token: accessToken,
                   loading: false,
                   initialized: true
                 });
-                // Redirect to citizen dashboard
-                if (typeof window !== 'undefined') {
-                  window.location.href = '/citizen/dashboard';
-                }
+                return { role: UserRole.CITIZEN };
               } 
               // Handle admin login (any role that's not CITIZEN)
               else {
@@ -129,29 +129,31 @@ export const useAuthStore = create<AuthState>()(
                 const adminData: User = {
                   id: adminUser.id,
                   username: adminUser.username || tokenPayload.username || 'admin',
-                  email: adminUser.email || '',
-                  first_name: adminUser.first_name || '',
-                  last_name: adminUser.last_name || '',
+                  email: adminUser.email || tokenPayload.email || '',
+                  first_name: adminUser.first_name || tokenPayload.first_name || '',
+                  last_name: adminUser.last_name || tokenPayload.last_name || '',
                   role: tokenPayload.role || UserRole.ADMIN,
                   roles: tokenPayload.roles || [tokenPayload.role || UserRole.ADMIN],
                   functional_roles: tokenPayload.functional_roles || [],
                   is_active: adminUser.is_active || true,
-                  permissions: adminUser.permissions || tokenPayload.permissions || [],
+                  permissions: typeof adminUser.permissions === 'object' && !Array.isArray(adminUser.permissions)
+                    ? Object.entries(adminUser.permissions)
+                        .filter(([_, value]) => value === true)
+                        .map(([key]) => key)
+                    : adminUser.permissions || [],
                   created_at: adminUser.created_at || new Date().toISOString(),
                   updated_at: adminUser.updated_at || new Date().toISOString(),
-                  citizen_id: tokenPayload.citizen_id || null
+                  citizen_id: tokenPayload.citizen_id || null,
+                  phone_number: adminUser.phone_number || tokenPayload.phone_number || ''
                 };
                 console.log('Setting admin data:', adminData);
                 set({
                   user: adminData,
-                  token,
+                  token: accessToken,
                   loading: false,
                   initialized: true
                 });
-                // Redirect to admin dashboard
-                if (typeof window !== 'undefined') {
-                  window.location.href = '/admin';
-                }
+                return { role: UserRole.ADMIN };
               }
             }
             
@@ -198,7 +200,7 @@ export const useAuthStore = create<AuthState>()(
         partialize: (state) => ({
           user: state.user,
           token: state.token,
-          initialized: state.initialized
+          initialized: state.initialized,
         }),
       }
     )

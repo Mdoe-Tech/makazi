@@ -1,13 +1,8 @@
 import { BaseEntity } from '../types';
 
 export enum UserRole {
-  SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN = 'ADMIN',
-  USER = 'USER',
-  VIEWER = 'VIEWER',
-  REGISTRAR = 'REGISTRAR',
-  VERIFIER = 'VERIFIER',
-  APPROVER = 'APPROVER',
+  SUPER_ADMIN = 'SUPER_ADMIN',
   CITIZEN = 'CITIZEN'
 }
 
@@ -21,16 +16,11 @@ export interface User {
   roles: UserRole[];
   functional_roles: string[];
   is_active: boolean;
-  permissions: string[];
+  permissions: string[] | Record<string, boolean>;
   created_at: string;
   updated_at: string;
-  citizen_id?: string | null;
+  citizen_id: string | null;
   phone_number?: string;
-  employment_status?: string;
-  employer_name?: string;
-  occupation?: string;
-  registration_status?: string;
-  nida_number?: string;
 }
 
 export interface LoginDto {
@@ -40,24 +30,26 @@ export interface LoginDto {
 }
 
 export interface RegisterDto {
-  nida_number: string;
+  username?: string;
+  nida_number?: string;
+  password: string;
+  email: string;
   first_name: string;
   last_name: string;
-  email: string;
-  phone_number: string;
-  password: string;
+  phone_number?: string;
 }
 
 export interface AuthResponse {
-  status: string;
   data: {
     data: {
       access_token: string;
-      user?: User;
-      citizen?: User;
+      refresh_token: string;
+      user: User;
+      citizen?: any;
     };
     status: string;
   };
+  status: string;
 }
 
 export interface RefreshTokenDto {

@@ -3,6 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
+import { LockClosedIcon } from '@heroicons/react/24/solid';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import axios from 'axios';
 
 interface VerificationResponse {
@@ -30,7 +36,7 @@ const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:30002/api';
 
 export default function CitizenLoginPage() {
   const router = useRouter();
-  const { login } = useAuthStore();
+  const { login, user } = useAuthStore();
   const [formData, setFormData] = useState<FormData>({
     nida_number: '',
     password: '',
@@ -39,6 +45,13 @@ export default function CitizenLoginPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [step, setStep] = useState<'nida' | 'create-password' | 'login'>('nida');
   const [verifying, setVerifying] = useState(false);
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (user) {
+      router.push('/citizen/dashboard');
+    }
+  }, [user, router]);
 
   const handleNidaVerification = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,10 +68,8 @@ export default function CitizenLoginPage() {
       }
 
       if (hasPassword) {
-        // If password exists, go to login step
         setStep('login');
       } else {
-        // If no password, go to create password step
         setStep('create-password');
       }
     } catch (error: any) {
@@ -80,12 +91,10 @@ export default function CitizenLoginPage() {
       }
 
       try {
-        // Create password without authentication
         await axios.post(`${baseURL}/citizen/${formData.nida_number}/password`, {
           password: formData.password
         });
 
-        // Show success message and go to login step
         setFormError(null);
         setStep('login');
         setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
@@ -94,10 +103,8 @@ export default function CitizenLoginPage() {
         setFormError(error.response?.data?.message || error.message || 'Failed to set password. Please try again.');
       }
     } else {
-      // Handle regular login
       try {
         await login({ nida_number: formData.nida_number, password: formData.password });
-        // Redirection is handled in the auth store
       } catch (error: any) {
         console.error('Login error:', error);
         setFormError(error.response?.data?.message || error.message || 'Failed to login. Please try again.');
@@ -114,111 +121,105 @@ export default function CitizenLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+      <Card className="w-full max-w-md shadow-lg border border-slate-200">
+        <CardHeader className="space-y-1 border-b border-slate-200">
+          <div className="mx-auto h-16 w-16 bg-blue-600 rounded-full flex items-center justify-center ring-4 ring-blue-100">
+            <LockClosedIcon className="h-8 w-8 text-white" />
+          </div>
+          <CardTitle className="text-2xl text-center font-bold text-slate-900">
             {step === 'nida' ? 'Verify NIDA Number' : 
              step === 'create-password' ? 'Create Password' : 
              'Citizen Login'}
-          </h2>
-        </div>
-
-        <form onSubmit={step === 'nida' ? handleNidaVerification : handlePasswordSubmit} className="mt-8 space-y-6">
-          <div className="rounded-md shadow-sm -space-y-px">
+          </CardTitle>
+          <CardDescription className="text-center text-slate-500">
+            {step === 'nida' ? 'Enter your NIDA number to continue' :
+             step === 'create-password' ? 'Create a password for your account' :
+             'Sign in to access your citizen dashboard'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <form onSubmit={step === 'nida' ? handleNidaVerification : handlePasswordSubmit} className="space-y-4">
             {step === 'nida' && (
-              <div>
-                <label htmlFor="nida_number" className="sr-only">NIDA Number</label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="nida_number" className="text-slate-700">NIDA Number</Label>
+                <Input
                   id="nida_number"
                   name="nida_number"
                   type="text"
                   required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="Enter NIDA Number"
+                  placeholder="Enter your NIDA number"
                   value={formData.nida_number}
                   onChange={handleChange}
+                  className="border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
                 />
               </div>
             )}
 
-            {step === 'create-password' && (
+            {(step === 'create-password' || step === 'login') && (
               <>
-                <div>
-                  <label htmlFor="password" className="sr-only">Password</label>
-                  <input
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-slate-700">Password</Label>
+                  <Input
                     id="password"
                     name="password"
                     type="password"
                     required
-                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                    placeholder="Enter Password"
+                    placeholder="Enter your password"
                     value={formData.password}
                     onChange={handleChange}
+                    className="border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
                   />
                 </div>
-                <div>
-                  <label htmlFor="confirmPassword" className="sr-only">Confirm Password</label>
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    required
-                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                    placeholder="Confirm Password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                  />
-                </div>
+
+                {step === 'create-password' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword" className="text-slate-700">Confirm Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
+                      required
+                      placeholder="Confirm your password"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className="border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                    />
+                  </div>
+                )}
               </>
             )}
 
-            {step === 'login' && (
-              <div>
-                <label htmlFor="password" className="sr-only">Password</label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="Enter Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-              </div>
+            {formError && (
+              <Alert variant="destructive" className="bg-red-50 border-red-200">
+                <AlertDescription className="text-red-800">
+                  {formError}
+                </AlertDescription>
+              </Alert>
             )}
-          </div>
 
-          {formError && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">{formError}</h3>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div>
-            <button
+            <Button
               type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 border border-blue-600 hover:border-blue-700"
               disabled={verifying}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              {verifying ? 'Verifying...' : 
-               step === 'nida' ? 'Verify NIDA' :
-               step === 'create-password' ? 'Set Password' :
-               'Login'}
-            </button>
-          </div>
-        </form>
-      </div>
+              {verifying ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {step === 'nida' ? 'Verifying...' : 'Processing...'}
+                </span>
+              ) : (
+                step === 'nida' ? 'Verify NIDA' :
+                step === 'create-password' ? 'Create Password' :
+                'Sign in'
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 } 

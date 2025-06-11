@@ -3,7 +3,6 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { documentService } from '@/lib/api/documents/service';
 import type { DocumentTemplate } from '@/lib/api/documents/types';
 import { DocumentType } from '@/lib/api/documents/types';
@@ -76,26 +75,21 @@ export default function DocumentRequestPage({ params }: { params: Promise<{ type
 
   if (loadingTemplate) {
     return (
-      <DashboardLayout userType="citizen">
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
-      </DashboardLayout>
     );
   }
 
   if (!template) {
     return (
-      <DashboardLayout userType="citizen">
         <div className="text-center text-red-600">
           {error || 'Document template not found'}
         </div>
-      </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout userType="citizen">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white shadow-sm rounded-lg p-6">
           <h1 className="text-2xl font-semibold text-gray-900 mb-6">
@@ -167,6 +161,5 @@ export default function DocumentRequestPage({ params }: { params: Promise<{ type
           </form>
         </div>
       </div>
-    </DashboardLayout>
   );
 } 

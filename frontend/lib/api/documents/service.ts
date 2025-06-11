@@ -71,6 +71,11 @@ class DocumentService {
     // Clean up the URL
     window.URL.revokeObjectURL(url);
   }
+
+  async getAllDocumentRequests(): Promise<DocumentRequest[]> {
+    const response = await apiClientInstance.get<ApiResponse<DocumentRequest[]>>('/documents/requests/all');
+    return response.data.data;
+  }
 }
 
 export const documentService = new DocumentService(); 

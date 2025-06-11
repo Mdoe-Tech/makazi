@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { documentService } from '@/lib/api/documents/service';
 import type { DocumentRequest } from '@/lib/api/documents/types';
 import { DocumentStatus } from '@/lib/api/documents/types';
@@ -48,17 +47,15 @@ export default function DocumentReviewPage() {
       const formData = new FormData();
       
       // Get signature as base64
+      let signatureData = '';
       if (signaturePadRef.current) {
-        const signatureData = signaturePadRef.current.toDataURL('image/png');
-        formData.append('signature', signatureData);
+        signatureData = signaturePadRef.current.toDataURL('image/png');
       }
 
-      // Add stamp if created
-      if (stampData) {
-        formData.append('stamp', stampData);
-      }
-
-      await documentService.approveDocument(request.id, formData);
+      await documentService.approveDocumentRequest(request.id, {
+        signature: signatureData,
+        stamp: stampData || ''
+      });
       router.push('/admin/documents/verify');
     } catch (error) {
       console.error('Error approving document:', error);
@@ -69,7 +66,7 @@ export default function DocumentReviewPage() {
     if (!request || !rejectionReason) return;
 
     try {
-      await documentService.rejectDocument(request.id, rejectionReason);
+      await documentService.rejectDocumentRequest(request.id, rejectionReason);
       router.push('/admin/documents/verify');
     } catch (error) {
       console.error('Error rejecting document:', error);
@@ -87,7 +84,6 @@ export default function DocumentReviewPage() {
   }
 
   return (
-    <DashboardLayout userType="admin">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Review Document Request</h1>
@@ -136,10 +132,6 @@ export default function DocumentReviewPage() {
                   <div>
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
                     <p className="mt-1 text-gray-900 dark:text-white">{request.citizen?.email}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Phone</label>
-                    <p className="mt-1 text-gray-900 dark:text-white">{request.citizen?.phone_number}</p>
                   </div>
                 </div>
               </div>
@@ -226,6 +218,5 @@ export default function DocumentReviewPage() {
           </div>
         )}
       </div>
-    </DashboardLayout>
   );
 } 

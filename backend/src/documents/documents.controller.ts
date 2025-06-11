@@ -55,6 +55,16 @@ export class DocumentsController {
 
   @Get('requests')
   async getDocumentRequests(@Request() req) {
+    // If user is admin, return all documents
+    if (req.user.role === Role.ADMIN) {
+      const requests = await this.documentsService.getAllDocumentRequests();
+      return {
+        status: 'success',
+        data: requests
+      };
+    }
+    
+    // For non-admin users, return only their documents
     const requests = await this.documentsService.getDocumentRequests(
       req.user.citizen_id
     );

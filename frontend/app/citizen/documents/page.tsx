@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { documentService } from '@/lib/api/documents/service';
 import type { DocumentRequest, DocumentTemplate } from '@/lib/api/documents/types';
 import { DocumentStatus } from '@/lib/api/documents/types';
@@ -79,16 +78,13 @@ export default function DocumentsPage() {
 
   if (loadingData) {
     return (
-      <DashboardLayout userType="citizen">
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
-      </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout userType="citizen">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900">Document Services</h1>
@@ -127,7 +123,6 @@ export default function DocumentsPage() {
                       <h3 className="text-sm font-medium text-gray-900">{template.title}</h3>
                       <p className="mt-1 text-sm text-gray-500">{template.description}</p>
                       <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                        <span>Fee: TZS {template.fee}</span>
                         <span>Processing: {template.processing_time}</span>
                       </div>
                     </div>
@@ -186,6 +181,5 @@ export default function DocumentsPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
   );
 } 

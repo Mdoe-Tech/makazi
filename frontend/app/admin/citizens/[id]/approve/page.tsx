@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { citizenService } from '@/lib/api/citizen/service';
 import type { Citizen } from '@/lib/api/citizen/types';
 import { use } from 'react';
@@ -109,36 +108,29 @@ export default function ApproveCitizenPage({ params }: PageProps) {
 
   if (!hasAdminRole) {
     return (
-      <DashboardLayout userType="admin">
         <div className="flex justify-center items-center h-64">
           <div className="text-red-600">You don't have permission to approve citizens</div>
         </div>
-      </DashboardLayout>
     );
   }
 
   if (loadingCitizen) {
     return (
-      <DashboardLayout userType="admin">
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
-      </DashboardLayout>
     );
   }
 
   if (error || !citizen) {
     return (
-      <DashboardLayout userType="admin">
         <div className="flex justify-center items-center h-64">
           <div className="text-red-600">{error || 'Citizen not found'}</div>
         </div>
-      </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout userType="admin">
       <div className="space-y-6">
         <div className="bg-white rounded-lg shadow-sm">
           <div className="p-6">
@@ -198,6 +190,5 @@ export default function ApproveCitizenPage({ params }: PageProps) {
           </div>
         </div>
       </div>
-    </DashboardLayout>
   );
 } 

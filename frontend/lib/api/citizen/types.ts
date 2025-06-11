@@ -66,6 +66,8 @@ export interface Citizen {
   nationality: string;
   nida_number: string;
   registration_status: string;
+  birth_certificate_number?: string;
+  other_names?: string;
   address?: {
     street: string;
     city: string;

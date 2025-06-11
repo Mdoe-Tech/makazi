@@ -1,12 +1,13 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { biometricService } from '../api/biometric/service';
-import type { BiometricData, BiometricFilters } from '../api/biometric/types';
+import type { Biometric, BiometricFilters } from '../api/biometric/types';
 import { PaginationParams } from '../api/types';
+import type { CreateBiometricDto } from '../api/biometric/types';
 
 interface BiometricState {
-  biometricData: BiometricData[];
-  selectedBiometric: BiometricData | null;
+  biometricData: Biometric[];
+  selectedBiometric: Biometric | null;
   total: number;
   loading: boolean;
   error: string | null;
@@ -15,7 +16,7 @@ interface BiometricState {
   // Actions
   setFilters: (filters: BiometricFilters) => void;
   setPagination: (pagination: PaginationParams) => void;
-  setSelectedBiometric: (biometric: BiometricData | null) => void;
+  setSelectedBiometric: (biometric: Biometric | null) => void;
   fetchBiometricData: () => Promise<void>;
   fetchBiometricById: (id: string) => Promise<void>;
   uploadBiometric: (data: FormData) => Promise<void>;
@@ -67,7 +68,7 @@ export const useBiometricStore = create<BiometricState>()(
         fetchBiometricById: async (id) => {
           try {
             set({ loading: true, error: null });
-            const response = await biometricService.getBiometricById(id);
+            const response = await biometricService.getBiometricDataById(id);
             set({ 
               selectedBiometric: response.data,
               loading: false 
@@ -80,10 +81,19 @@ export const useBiometricStore = create<BiometricState>()(
           }
         },
 
-        uploadBiometric: async (data) => {
+        uploadBiometric: async (data: FormData) => {
           try {
             set({ loading: true, error: null });
-            await biometricService.uploadBiometric(data);
+            const biometricData: CreateBiometricDto = {
+              fingerprint_data: data.get('fingerprint_data') as string,
+              metadata: {
+                quality_score: Number(data.get('quality_score')),
+                capture_device: data.get('capture_device') as string,
+                template_version: data.get('template_version') as string
+              },
+              citizen_id: data.get('citizen_id') as string
+            };
+            await biometricService.createBiometric(biometricData);
             await get().fetchBiometricData();
           } catch (error) {
             set({ 

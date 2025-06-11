@@ -53,6 +53,12 @@ export class DocumentsService {
     });
   }
 
+  async getAllDocumentRequests(): Promise<DocumentRequest[]> {
+    return this.documentRequestRepository.find({
+      order: { created_at: 'DESC' }
+    });
+  }
+
   async getDocumentRequest(id: string): Promise<DocumentRequest> {
     const request = await this.documentRequestRepository.findOne({
       where: { id }

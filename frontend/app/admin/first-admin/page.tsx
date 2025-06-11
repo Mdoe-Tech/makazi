@@ -27,20 +27,12 @@ export default function CreateFirstAdminPage() {
     }
     try {
       await register({
-        username: formData.username,
+        nida_number: formData.username,
         password: formData.password,
         email: formData.email,
         first_name: formData.firstName,
         last_name: formData.lastName,
-        phone_number: formData.phoneNumber,
-        role: formData.role as any,
-        is_active: true,
-        permissions: {
-          can_manage_users: true,
-          can_manage_roles: true,
-          can_view_audit_logs: true,
-          can_manage_settings: true
-        }
+        phone_number: formData.phoneNumber
       });
 
       // Redirect to login page after successful registration

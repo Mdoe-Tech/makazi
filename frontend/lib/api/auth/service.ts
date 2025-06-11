@@ -34,15 +34,22 @@ export class AuthService {
   }
 
   async register(data: RegisterDto): Promise<AuthResponse> {
-    return apiClientInstance.post<AuthResponse>('/admin/users/first-admin', data);
+    const response = await apiClientInstance.post<AuthResponse>('/auth/register', data);
+    return response;
+  }
+
+  async verifyNida(data: { nida_number: string }): Promise<AuthResponse> {
+    const response = await apiClientInstance.post<AuthResponse>('/auth/verify-nida', data);
+    return response;
   }
 
   async refreshToken(): Promise<AuthResponse> {
-    return apiClientInstance.post<AuthResponse>(`${this.baseUrl}/refresh`);
+    const response = await apiClientInstance.post<AuthResponse>('/auth/refresh');
+    return response;
   }
 
   async logout(): Promise<void> {
-    return apiClientInstance.post(`${this.baseUrl}/logout`);
+    await apiClientInstance.post('/auth/logout');
   }
 
   async getProfile(): Promise<{ data: User }> {
