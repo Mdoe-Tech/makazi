@@ -18,9 +18,9 @@ class NidaService {
     return { data: response.data };
   }
 
-  async verifyNida(data: { nida_number: string; first_name: string; last_name: string; date_of_birth: string }): Promise<{ data: NidaVerificationResult }> {
-    const response = await apiClientInstance.post<{ data: NidaVerificationResult }>(`${this.baseUrl}/verify`, data);
-    return { data: response.data };
+  async verifyNida(data: { nida_number: string; first_name: string; last_name: string; date_of_birth: string }): Promise<{ data: { data: NidaVerificationResult } }> {
+    const response = await apiClientInstance.post<{ data: { data: NidaVerificationResult } }>(`${this.baseUrl}/verify`, data);
+    return response;
   }
 
   async getNidaVerificationHistory(id: string): Promise<{ data: NidaVerificationResult[] }> {

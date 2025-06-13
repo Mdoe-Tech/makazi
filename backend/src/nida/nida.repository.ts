@@ -25,12 +25,22 @@ export class NidaRepository {
     let nidaNumber: string;
     let isUnique = false;
 
-    // Keep generating until we get a unique NIDA number
-    while (!isUnique) {
-      nidaNumber = this.generateNidaNumber();
+    // If nida_number is provided in the DTO, use it
+    if ('nida_number' in registerNidaDto && (registerNidaDto as any).nida_number) {
+      nidaNumber = (registerNidaDto as any).nida_number;
+      // Check if this NIDA number already exists
       const existing = await this.findByNidaNumber(nidaNumber);
-      if (!existing) {
-        isUnique = true;
+      if (existing) {
+        throw new Error('NIDA number already exists');
+      }
+    } else {
+      // Keep generating until we get a unique NIDA number
+      while (!isUnique) {
+        nidaNumber = this.generateNidaNumber();
+        const existing = await this.findByNidaNumber(nidaNumber);
+        if (!existing) {
+          isUnique = true;
+        }
       }
     }
 

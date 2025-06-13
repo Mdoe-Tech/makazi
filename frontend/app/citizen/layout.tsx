@@ -82,7 +82,7 @@ export default function CitizenLayout({
               "peer-data-[state=collapsed]:ml-[var(--sidebar-width-icon)]"
             )}
           >
-            <Header fixed>
+            <Header fixed className="w-full">
               <TopNav links={navLinks} />
             </Header>
             <main className="flex-1 p-4 md:p-6 mt-16 w-full">

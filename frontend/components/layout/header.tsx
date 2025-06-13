@@ -30,7 +30,7 @@ export const Header = ({
     <header
       className={cn(
         'bg-white dark:bg-slate-950 flex h-16 items-center gap-3 p-4 sm:gap-4 border-b border-slate-200 dark:border-slate-800',
-        fixed && 'header-fixed peer/header fixed z-50 w-[inherit] rounded-md',
+        fixed && 'header-fixed peer/header fixed z-50 w-full transition-[width] duration-300',
         offset > 10 && fixed ? 'shadow-sm' : 'shadow-none',
         className
       )}

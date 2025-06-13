@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
 import { useCitizenStore } from '@/lib/store/citizen.store';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Search, Filter } from 'lucide-react';
 
 export default function CitizenListPage() {
@@ -16,18 +15,18 @@ export default function CitizenListPage() {
   const [itemsPerPage] = useState(10);
 
   useEffect(() => {
-    fetchCitizens({ page: currentPage, limit: itemsPerPage });
+    const { setPagination, fetchCitizens } = useCitizenStore.getState();
+    setPagination({ page: currentPage, limit: itemsPerPage });
+    fetchCitizens();
   }, [currentPage, itemsPerPage]);
 
   // Only admin roles can access this page
   if (!user || !['ADMIN', 'REGISTRAR', 'VERIFIER', 'APPROVER'].includes(user.role as string)) {
     return (
-      <DashboardLayout userType="admin">
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
           <p className="mt-2 text-gray-600">You don't have permission to access this page.</p>
         </div>
-      </DashboardLayout>
     );
   }
 
@@ -37,12 +36,11 @@ export default function CitizenListPage() {
       citizen.first_name.toLowerCase().includes(searchString) ||
       citizen.last_name.toLowerCase().includes(searchString) ||
       citizen.nida_number.includes(searchString) ||
-      citizen.birth_certificate_number.includes(searchString)
+      (citizen.birth_certificate_number?.includes(searchString) ?? false)
     );
   });
 
   return (
-    <DashboardLayout userType="admin">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -173,6 +171,5 @@ export default function CitizenListPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
   );
 } 

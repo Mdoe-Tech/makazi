@@ -18,7 +18,7 @@ interface CitizenState {
   setSelectedCitizen: (citizen: Citizen | null) => void;
   fetchCitizens: () => Promise<void>;
   fetchCitizenById: (id: string) => Promise<void>;
-  createCitizen: (data: CreateCitizenDto) => Promise<void>;
+  createCitizen: (data: CreateCitizenDto) => Promise<Citizen>;
   updateCitizen: (id: string, data: UpdateCitizenDto) => Promise<void>;
   deleteCitizen: (id: string) => Promise<void>;
   verifyCitizen: (id: string) => Promise<void>;
@@ -70,9 +70,9 @@ export const useCitizenStore = create<CitizenState>()(
         fetchCitizenById: async (id) => {
           try {
             set({ loading: true, error: null });
-            const response = await citizenService.getCitizenById(id);
+            const citizen = await citizenService.getCitizen(id);
             set({ 
-              selectedCitizen: response.data,
+              selectedCitizen: citizen,
               loading: false 
             });
           } catch (error) {
@@ -86,13 +86,18 @@ export const useCitizenStore = create<CitizenState>()(
         createCitizen: async (data) => {
           try {
             set({ loading: true, error: null });
-            await citizenService.createCitizen(data);
+            console.log('Store: Creating citizen with data:', data);
+            const response = await citizenService.createCitizen(data);
+            console.log('Store: Citizen creation response:', response);
             await get().fetchCitizens();
-          } catch (error) {
+            return response;
+          } catch (error: any) {
+            console.error('Store: Citizen creation error:', error);
             set({ 
               error: error instanceof Error ? error.message : 'Failed to create citizen',
               loading: false 
             });
+            throw error;
           }
         },
 

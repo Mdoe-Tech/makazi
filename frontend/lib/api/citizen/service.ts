@@ -29,8 +29,21 @@ class CitizenService {
   }
 
   async createCitizen(data: CreateCitizenDto): Promise<Citizen> {
-    const response = await apiClientInstance.post<ApiResponse<Citizen>>('/citizen', data);
-    return response.data;
+    console.log('Creating citizen with data:', data);
+    try {
+      const response = await apiClientInstance.post<ApiResponse<Citizen>>('/citizen', data);
+      console.log('Citizen creation response:', response);
+      if (!response.data) {
+        throw new Error('No data received from citizen creation API');
+      }
+      return response.data;
+    } catch (error: any) {
+      console.error('Citizen creation error:', error);
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw error;
+    }
   }
 
   async updateCitizen(id: string, data: UpdateCitizenDto): Promise<Citizen> {
