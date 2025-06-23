@@ -86,6 +86,11 @@ export class AuthService {
   async getPermissions(): Promise<ApiResponse<string[]>> {
     return apiClientInstance.get<ApiResponse<string[]>>(`${this.baseUrl}/permissions`);
   }
+
+  async registerFirstSuperAdmin(data: RegisterDto): Promise<AuthResponse> {
+    const response = await apiClientInstance.post<AuthResponse>('/admin/users/first-admin', data);
+    return response;
+  }
 }
 
 export const authService = AuthService.getInstance(); 

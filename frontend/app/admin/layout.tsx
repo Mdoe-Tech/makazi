@@ -49,8 +49,8 @@ export default function AdminLayout({
     return null
   }
   
-  // Don't show layout for login page
-  if (pathname?.includes('/login')) {
+  // Don't show layout for login page or superadmin page
+  if (pathname?.includes('/login') || pathname?.includes('/superadmin')) {
     return <>{children}</>
   }
 

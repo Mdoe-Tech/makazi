@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { UserRole } from '@/lib/api/auth/types';
+import Link from 'next/link';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -122,6 +123,9 @@ export default function AdminLoginPage() {
               )}
             </Button>
           </form>
+          <div className="mt-6 text-center">
+            <Link href="/" className="text-blue-600 hover:underline text-sm">&larr; Back to Home</Link>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -65,11 +65,14 @@ export class AuthService {
   }
 
   async login(user: any) {
+    const allRoles = user.roles
+      ? [user.role, ...user.roles.filter((r: string) => r !== user.role)]
+      : [user.role];
     const payload = { 
       username: user.username, 
       sub: user.id,
-      role: Role.ADMIN, // Force ADMIN role for now
-      roles: [Role.ADMIN],
+      role: user.role,
+      roles: allRoles,
       functional_roles: user.functional_roles || [],
       permissions: user.permissions
     };
@@ -81,8 +84,8 @@ export class AuthService {
       user: {
         id: user.id,
         username: user.username,
-        role: Role.ADMIN,
-        roles: [Role.ADMIN],
+        role: user.role,
+        roles: allRoles,
         functional_roles: user.functional_roles || [],
         permissions: user.permissions
       }

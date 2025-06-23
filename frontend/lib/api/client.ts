@@ -51,7 +51,10 @@ apiClient.interceptors.response.use(
         localStorage.removeItem('token');
         // Redirect based on the current route
         const isCitizenRoute = window.location.pathname.startsWith('/citizen');
-        window.location.href = isCitizenRoute ? '/citizen/login' : '/admin/login';
+        const isFirstAdminPage = window.location.pathname.startsWith('/admin/first-admin');
+        if (!isFirstAdminPage) {
+          window.location.href = isCitizenRoute ? '/citizen/login' : '/admin/login';
+        }
       }
     }
     return Promise.reject(error);

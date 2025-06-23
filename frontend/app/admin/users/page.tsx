@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminStore } from '@/lib/store/admin.store';
 import { useAuthStore } from '@/lib/store/auth.store';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Plus, Search, Filter } from 'lucide-react';
 import { UserRole } from '@/lib/api/auth/types';
 import { adminService } from '@/lib/api/admin/service';
@@ -36,12 +35,10 @@ export default function AdminUsersPage() {
   // Only SUPER_ADMIN can access this page
   if (!user || user.role !== UserRole.SUPER_ADMIN) {
     return (
-      <DashboardLayout userType="admin">
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
           <p className="mt-2 text-gray-600">You don't have permission to access this page.</p>
         </div>
-      </DashboardLayout>
     );
   }
 
@@ -75,7 +72,6 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <DashboardLayout userType="admin">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -214,29 +210,28 @@ export default function AdminUsersPage() {
             </tbody>
           </table>
         </div>
-      </div>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the admin user
-              and remove their data from our servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </DashboardLayout>
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the admin user
+                and remove their data from our servers.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDelete}
+                className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
   );
 } 

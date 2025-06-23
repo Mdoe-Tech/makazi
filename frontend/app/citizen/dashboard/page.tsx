@@ -9,7 +9,7 @@ import { DocumentStatus } from '@/lib/api/documents/types';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, loading } = useAuthStore();
+  const { user, loading, logout } = useAuthStore();
   const [isClient, setIsClient] = useState(false);
   const [recentRequests, setRecentRequests] = useState<DocumentRequest[]>([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -20,10 +20,14 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (isClient && !loading && !user) {
-      router.push('/citizen/login');
+    if (isClient && !loading) {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      if (!user || !token) {
+        logout();
+        router.push('/citizen/login');
+      }
     }
-  }, [isClient, user, loading, router]);
+  }, [isClient, user, loading, router, logout]);
 
   useEffect(() => {
     const fetchRecentRequests = async () => {

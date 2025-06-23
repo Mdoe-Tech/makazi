@@ -4,7 +4,6 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminStore } from '@/lib/store/admin.store';
 import { useAuthStore } from '@/lib/store/auth.store';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { AdminRole } from '@/lib/api/admin/types';
 import { UserRole } from '@/lib/api/auth/types';
 
@@ -16,6 +15,10 @@ interface FormData {
   phone_number: string;
   role: AdminRole;
   is_active: boolean;
+  region?: string;
+  district?: string;
+  ward?: string;
+  office?: string;
 }
 
 export default function EditAdminPage({ params }: { params: Promise<{ id: string }> }) {
@@ -48,6 +51,10 @@ export default function EditAdminPage({ params }: { params: Promise<{ id: string
         phone_number: userToEdit.phone_number || '',
         role: userToEdit.role as AdminRole,
         is_active: userToEdit.is_active,
+        region: userToEdit.metadata?.region || '',
+        district: userToEdit.metadata?.district || '',
+        ward: userToEdit.metadata?.ward || '',
+        office: userToEdit.metadata?.office || '',
       });
     }
   }, [users, id]);
@@ -55,12 +62,10 @@ export default function EditAdminPage({ params }: { params: Promise<{ id: string
   // Only SUPER_ADMIN can access this page
   if (!user || user.role !== UserRole.SUPER_ADMIN) {
     return (
-      <DashboardLayout userType="admin">
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
           <p className="mt-2 text-gray-600">You don't have permission to access this page.</p>
         </div>
-      </DashboardLayout>
     );
   }
 
@@ -249,26 +254,21 @@ export default function EditAdminPage({ params }: { params: Promise<{ id: string
 
   if (loading) {
     return (
-      <DashboardLayout userType="admin">
         <div className="text-center py-12">
           <p className="text-gray-600">Loading...</p>
         </div>
-      </DashboardLayout>
     );
   }
 
   if (error) {
     return (
-      <DashboardLayout userType="admin">
         <div className="text-center py-12">
           <p className="text-red-600">Error: {error}</p>
         </div>
-      </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout userType="admin">
       <div className="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="md:flex md:items-center md:justify-between">
           <div className="flex-1 min-w-0">
@@ -443,6 +443,5 @@ export default function EditAdminPage({ params }: { params: Promise<{ id: string
           </div>
         </form>
       </div>
-    </DashboardLayout>
   );
 } 

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import axios from 'axios';
+import Link from 'next/link';
 
 interface VerificationResponse {
   data: {
@@ -36,7 +37,7 @@ const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:30002/api';
 
 export default function CitizenLoginPage() {
   const router = useRouter();
-  const { login, user } = useAuthStore();
+  const { login, user, logout } = useAuthStore();
   const [formData, setFormData] = useState<FormData>({
     nida_number: '',
     password: '',
@@ -48,10 +49,15 @@ export default function CitizenLoginPage() {
 
   // Redirect if user is already logged in
   useEffect(() => {
-    if (user) {
-      router.push('/citizen/dashboard');
+    if (user && typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        router.push('/citizen/dashboard');
+      } else {
+        logout(); // Clear stale user state if token is missing
+      }
     }
-  }, [user, router]);
+  }, [user, router, logout]);
 
   const handleNidaVerification = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -218,6 +224,9 @@ export default function CitizenLoginPage() {
               )}
             </Button>
           </form>
+          <div className="mt-6 text-center">
+            <Link href="/" className="text-blue-600 hover:underline text-sm">&larr; Back to Home</Link>
+          </div>
         </CardContent>
       </Card>
     </div>
