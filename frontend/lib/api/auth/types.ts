@@ -42,10 +42,13 @@ export interface RegisterDto {
 export interface AuthResponse {
   data: {
     data: {
-      access_token: string;
-      refresh_token: string;
-      user: User;
-      citizen?: any;
+      data: {
+        access_token: string;
+        refresh_token: string;
+        user: User;
+        citizen?: any;
+      };
+      status: string;
     };
     status: string;
   };

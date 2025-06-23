@@ -81,7 +81,10 @@ export const useAuthStore = create<AuthState>()(
             const response = await authService.login(credentials);
             console.log('Login response:', response);
             
-            const accessToken = response.data.data.access_token;
+            // Handle the triple-nested response structure
+            const responseData = response.data?.data?.data || response.data?.data || response.data;
+            const accessToken = responseData?.access_token;
+            
             if (accessToken) {
               localStorage.setItem('token', accessToken);
 
@@ -91,7 +94,7 @@ export const useAuthStore = create<AuthState>()(
 
               // Handle citizen login
               if (tokenPayload.role === UserRole.CITIZEN) {
-                const citizen = response.data.data.citizen;
+                const citizen = responseData?.citizen;
                 if (!citizen) {
                   throw new Error('Citizen data not found in response');
                 }
@@ -122,7 +125,7 @@ export const useAuthStore = create<AuthState>()(
               } 
               // Handle admin login (any role that's not CITIZEN)
               else {
-                const adminUser = response.data.data.user;
+                const adminUser = responseData?.user;
                 if (!adminUser) {
                   throw new Error('Admin user data not found in response');
                 }
@@ -136,7 +139,7 @@ export const useAuthStore = create<AuthState>()(
                   roles: tokenPayload.roles || [tokenPayload.role || UserRole.ADMIN],
                   functional_roles: tokenPayload.functional_roles || [],
                   is_active: adminUser.is_active || true,
-                  permissions: typeof adminUser.permissions === 'object' && !Array.isArray(adminUser.permissions)
+                  permissions: typeof adminUser.permissions === 'object' && adminUser.permissions !== null && !Array.isArray(adminUser.permissions)
                     ? Object.entries(adminUser.permissions)
                         .filter(([_, value]) => value === true)
                         .map(([key]) => key)

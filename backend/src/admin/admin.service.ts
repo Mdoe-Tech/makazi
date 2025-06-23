@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { CreateAdminDto, UpdateAdminDto } from './dto/create-admin.dto';
 import { LoggingService } from '../logging/logging.service';
 import * as bcrypt from 'bcrypt';
@@ -15,12 +15,7 @@ export class AdminService {
 
   async createFirstAdmin(createAdminDto: CreateAdminDto) {
     this.loggingService.log('Checking if any admin exists');
-    // Check if any admin exists
-    const existingAdmin = await this.adminRepository.findAll();
-    if (existingAdmin.length > 0) {
-      this.loggingService.warn('Attempted to create first admin when admin already exists');
-      throw new ConflictException('An admin user already exists');
-    }
+    // Removed check for existing admin
 
     this.loggingService.log('Hashing password for first admin');
     // Hash password before saving
@@ -36,6 +31,11 @@ export class AdminService {
       email: createAdminDto.email,
       functional_roles: [Role.SUPER_ADMIN]
     });
+
+    if (!admin) {
+      this.loggingService.error('Failed to create admin: adminRepository.create returned null or undefined');
+      throw new InternalServerErrorException('Failed to create admin user. Please check for duplicate username/email or database errors.');
+    }
 
     this.loggingService.log(`First admin created successfully with ID: ${admin.id}`);
     return admin;

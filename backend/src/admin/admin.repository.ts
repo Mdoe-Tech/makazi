@@ -31,8 +31,9 @@ export class AdminRepository {
 
       // Save functional roles - use either functional_roles or roles array
       const rolesToSave = functional_roles || roles || [];
+      let savedRoles = [];
       if (rolesToSave.length > 0) {
-        await transactionalEntityManager.save(
+        savedRoles = await transactionalEntityManager.save(
           AdminRole,
           rolesToSave.map(role => ({
             admin_id: savedAdmin.id,
@@ -41,7 +42,9 @@ export class AdminRepository {
         );
       }
 
-      return this.findById(savedAdmin.id);
+      // Attach functional_roles to the returned admin object
+      (savedAdmin as any).functional_roles = savedRoles;
+      return savedAdmin;
     });
   }
 
